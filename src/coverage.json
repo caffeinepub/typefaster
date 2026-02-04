@@ -1,0 +1,54 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-03T23:37:07.543Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 2,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Fix backend profile creation so a normal authenticated user can create a profile without triggering any admin-only role assignment checks. Specifically: ensure `createProfile(username)` assigns the default `#user` role for non-first users and `#admin` for the first user without calling any role-assignment path that requires the caller to already be an admin.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/TypingChallenge.tsx",
+          "frontend/src/utils/typingChallengeScoring.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/TypingChallenge.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "build-template/Dockerfile",
+    "build-template/LICENSE",
+    "build-template/README.md",
+    "build-template/deploy.sh",
+    "build-template/icp.yaml",
+    "build-template/src/backend/canister.yaml",
+    "build-template/src/frontend/canister.yaml",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/pages/TypingChallenge.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Restore conditional time bonus XP in typing challenge",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Reinstate time bonus XP (+5 per remaining second) only for fully completed, perfect, non-skipped typing challenge runs, and ensure submitted XP includes the bonus only when eligible.",
+      "acceptanceCriteria": [
+        "When the user completes all 5 levels by typing every word correctly (no incorrect words), without using the skip-level flow, the final submitted XP includes an additional `timeRemaining * 5` bonus.",
+        "If the user mistypes at least one word anywhere in the run, the time bonus is 0 even if they finish with time remaining.",
+        "If the user triggers the skip-level flow at least once, the time bonus is 0.",
+        "If the session ends due to timeout or the user presses Finish before completing all required words, the time bonus is 0.",
+        "The XP value sent to `saveChallengeSession` equals (word-score XP across all completed/partial levels) + (time bonus, if eligible)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TypingChallenge.tsx",
+          "operation": "modify",
+          "description": "Update typing challenge completion/scoring to track disqualifying conditions (any mistyped word, any skip-level use, and any skipped words via timeout/early finish/incomplete levels) and compute/apply a time bonus of `timeRemaining * 5` only when the run finishes naturally after typing all words in all 5 levels with zero mistakes and no skips; ensure the XP passed to `saveChallengeSession` is the word-score total plus the eligible time bonus (otherwise plus 0)."
+        },
+        {
+          "path": "frontend/src/utils/typingChallengeScoring.ts",
+          "operation": "create",
+          "description": "Add a small scoring/eligibility helper to compute per-level word XP and detect whether a level completion contains any incorrect typed words, so TypingChallenge can reliably disqualify time-bonus eligibility when a mistype occurs and keep bonus logic consistent."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-restore-the-time-bonus-xp-rule-in-the-typing-challenge-award-5-xp-per-remaining-second-at-the-moment-the-session-ends-only-if-the-user-completed-the-entire-challenge-with-1-zero-mistyped-words-2-no-skipped-level-actions-and-3-no-skipped-words-ending-the-session-early-timing-out-or-skipping-a-level-before-typing-all-words-counts-as-skipped-words-if-any-of-these-conditions-is-violated-award-0-time-bonus",
+      "featureTitle": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+      "files": [
+        "frontend/src/pages/TypingChallenge.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

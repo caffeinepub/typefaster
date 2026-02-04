@@ -1,0 +1,281 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 15,
+  "summary": "TypeFaster is a web-based typing challenge app deployed on the Internet Computer (IC). Users authenticate via Internet Identity, create a unique username profile, complete a timed 5-level typing challenge to earn XP, and have their challenge sessions persisted in a Motoko canister. The app provides personal stats/history, a global leaderboard based on best single-session XP, a wallet UI for withdrawals (backed by a canister-side balance/transaction log), and an admin dashboard for toggling a competition flag and manually distributing ICP prizes while viewing the app canister’s configured identity and recent transactions.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Internet Identity authentication context",
+      "synonyms": [
+        "II login",
+        "InternetIdentityProvider"
+      ],
+      "description": "Provides login/logout and identity persistence using @dfinity/auth-client, exposing loginStatus flags and the authenticated Identity via a React context (useInternetIdentity). Supports loading a stored identity on mount and a 30-day maxTimeToLive delegation.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Actor initialization per identity with authorization bootstrap",
+      "synonyms": [
+        "useActor",
+        "canister actor creation"
+      ],
+      "description": "Creates an anonymous or authenticated backend actor depending on whether an Identity is present. On authenticated actor creation, calls _initializeAccessControlWithSecret using a secret taken from a URL hash parameter (caffeineAdminToken) to initialize access control roles, and invalidates/refetches dependent React Query queries when the actor changes.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Role-based access control in Motoko canister",
+      "synonyms": [
+        "AccessControl",
+        "MixinAuthorization"
+      ],
+      "description": "Implements admin/user/guest roles, permission checks, admin role assignment, and helper queries (getCallerUserRole, isCallerAdmin). Admin bootstrap uses a canister env var CAFFEINE_ADMIN_TOKEN and a user-provided token passed to _initializeAccessControlWithSecret.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "User profile retrieval with “new user = null” handling",
+      "synonyms": [
+        "getCallerUserProfile",
+        "profile detection"
+      ],
+      "description": "Frontend useGetCallerUserProfile fetches the caller’s profile and treats authorization/not-found errors as a null profile to trigger new-user onboarding. The main App gate shows a ProfileSetupModal when the profile is null.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Profile creation and first-user onboarding UI",
+      "synonyms": [
+        "ProfileSetupModal",
+        "createProfile"
+      ],
+      "description": "Allows authenticated users to create a unique username profile via createProfile. UI displays special messaging for the first user/owner (using getFirstUserFlag) and shows toast feedback and loading states.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Typing challenge gameplay (5 levels, 10-minute total timer)",
+      "synonyms": [
+        "TypingChallenge"
+      ],
+      "description": "Implements a multi-level typing challenge with predefined texts (20/50/100/200/500 words), a global 10-minute timer, progress tracking, XP scoring (+5 correct, -10 incorrect), optional level skip confirmation, and end conditions (finished, manual finish, timeout).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Basic anti-cheat input restrictions",
+      "synonyms": [
+        "no paste",
+        "no drag/drop"
+      ],
+      "description": "Disables paste, drag-and-drop, and context menu during the typing challenge and provides user feedback via toasts when blocked actions occur.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "Challenge session persistence and history",
+      "synonyms": [
+        "saveChallengeSession",
+        "getUserChallengeSessions"
+      ],
+      "description": "On challenge completion, persists a ChallengeSession (caller principal, timestamp, xpEarned) to the backend and provides a query for the authenticated user to list all their sessions.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "User statistics dashboard",
+      "synonyms": [
+        "StatsPage"
+      ],
+      "description": "Displays total XP, session count, average XP, and a table of the user’s challenge sessions with timestamp formatting (nanoseconds to Date).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "Global leaderboard (best single-session XP)",
+      "synonyms": [
+        "LeaderboardPage",
+        "getLeaderboard"
+      ],
+      "description": "Backend computes each user’s best session XP and returns a sorted leaderboard of (username, bestXP). Frontend renders a ranked list with special icons for top 3 and supports a public top-10 preview on the login page.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "Public landing page with leaderboard preview and donation account display",
+      "synonyms": [
+        "LoginPage",
+        "public leaderboard"
+      ],
+      "description": "Unauthenticated landing page that advertises app features, shows a public top-10 leaderboard preview, provides an Internet Identity login button, and displays a donation address fetched from getCanisterAccountId.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "Wallet page with principal/account ID display and withdrawals",
+      "synonyms": [
+        "WalletPage",
+        "withdrawICP"
+      ],
+      "description": "Shows the user’s Principal ID and derives a ledger-style account identifier client-side (principalToAccountIdentifier) with copy-to-clipboard actions. Includes a withdrawal dialog that calls backend withdrawICP to transfer an amount to a recipient account ID (backend records a transaction and decrements appBalance).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "ICP account identifier derivation utility",
+      "synonyms": [
+        "principalToAccountIdentifier",
+        "accountId.ts"
+      ],
+      "description": "Implements ICP account identifier generation from a Principal using SHA-224 (via SHA-256 truncation) and CRC32 checksum, returning a 32-byte hex account identifier.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "Admin dashboard access gating",
+      "synonyms": [
+        "AdminDashboard",
+        "admin-only UI"
+      ],
+      "description": "Admin-only page that checks isCallerAdmin and shows an access denied state for non-admins. Header also conditionally shows an Admin nav button based on admin query and/or profile isAdmin flag.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Competition state control",
+      "synonyms": [
+        "daily competition toggle"
+      ],
+      "description": "Provides backend storage and queries for a boolean competitionActive flag (getCompetitionState, setCompetitionState) and an admin UI switch to toggle it, with toast feedback.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "Admin-configurable app canister identity and ID generation stubs",
+      "synonyms": [
+        "setAppPrincipalId",
+        "setAppSubaccountId",
+        "generateAppIds"
+      ],
+      "description": "Backend supports storing an app principal and a subaccount/account ID used for prize distribution. Frontend includes hooks and a modal for setting or generating these IDs; backend generateAppIds currently returns hard-coded values and persists them.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-17",
+      "title": "Admin prize distribution and transaction history log",
+      "synonyms": [
+        "sendICPPrize",
+        "getTransactionHistory"
+      ],
+      "description": "Admin can send an ICP prize to a recipient account ID (backend decrements appBalance and logs an ICPTransaction). Admin dashboard displays recent transactions, and a modal validates recipient/amount against currentBalance before sending.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-18",
+      "title": "Admin canister balance query with polling",
+      "synonyms": [
+        "getAppCanisterBalance",
+        "balance polling"
+      ],
+      "description": "Provides an admin-only backend method to query the app’s canister-held balance (appBalance) and a frontend query that refetches every 30 seconds to keep the displayed balance updated.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-19",
+      "title": "Application shell with in-app page navigation and global UI",
+      "synonyms": [
+        "AppContent",
+        "Header/Footer"
+      ],
+      "description": "Implements a simple page state machine (menu/challenge/stats/wallet/leaderboard/admin) with a shared Header (navigation, username, logout) and Footer. Uses toast notifications (sonner) and loading/error screens for initialization, actor connection, and profile loading.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-the-time-bonus-xp-rule-in-the-typing-challenge-award-5-xp-per-remaining-second-at-the-moment-the-session-ends-only-if-the-user-completed-the-entire-challenge-with-1-zero-mistyped-words-2-no-skipped-level-actions-and-3-no-skipped-words-ending-the-session-early-timing-out-or-skipping-a-level-before-typing-all-words-counts-as-skipped-words-if-any-of-these-conditions-is-violated-award-0-time-bonus",
+      "title": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Fix createProfile unauthorized error by allowing normal onboarding role assignment (createProfile should not require admin role to assign initial user roles).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Re-introduce time bonus: award +5 XP per remaining second only if the user completes all words/levels with no skips and no mistyped words; otherwise no time bonus.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Reintroduce time bonus: +5 XP per remaining second only if the user made zero mistakes and did not skip any word or level; otherwise no time bonus is awarded.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Fix backend profile creation so a normal authenticated user can create a profile without triggering any admin-only role assignment checks. Specifically: ensure `createProfile(username)` assigns the default `#user` role for non-first users and `#admin` for the first user without calling any role-assignment path that requires the caller to already be an admin.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [
+    "Frontend is React + TypeScript using @tanstack/react-query for data fetching, caching, retries, and cache invalidation.",
+    "IC integration uses an agent “actor” pattern; the actor is recreated when the authenticated Internet Identity changes (query key includes principal), and all dependent queries are invalidated/refetched on actor change.",
+    "Authentication is handled via @dfinity/auth-client with a React context provider (InternetIdentityProvider) exposing identity, login, logout, and login status.",
+    "Authorization is implemented in Motoko via an AccessControl module and a MixinAuthorization mixin; role checks gate user/admin endpoints.",
+    "An admin bootstrap mechanism exists via a canister environment variable (CAFFEINE_ADMIN_TOKEN) combined with a client-provided secret passed through a URL hash parameter (caffeineAdminToken) and stored in sessionStorage.",
+    "Backend state is held in in-memory Map structures (mo:core/Map) and mutable vars inside the canister actor (profiles, sessions, competition state, app IDs, app balance, transaction history).",
+    "UI is built with TailwindCSS (OKLCH token-based theming) and shadcn-style components; pages are rendered by a simple in-app page state (not a router).",
+    "The typing challenge includes basic anti-cheat UX restrictions (disallow paste, drag/drop, context menu).",
+    "Frontend now enforces app-wide React Query + Internet Identity provider setup via lint rules (e.g., require-internet-identity-provider) to prevent accidental nested providers/multiple QueryClients.",
+    "React Query cache keys for user profile are now consistent across queries and mutations (principal is included consistently) so createProfile immediately updates the correct cached profile entry.",
+    "Authorization bootstrap (_initializeAccessControlWithSecret) is now resilient to missing CAFFEINE_ADMIN_TOKEN / missing client secret and no longer traps during normal login/actor initialization.",
+    "Backend role assignment for normal user onboarding no longer requires the caller to already be an admin (internal role assignment path used for createProfile/onboarding).",
+    "Canister principal/account ID display is now wired to real derived/stored values rather than showing “Not available” in the admin/landing donation UI.",
+    "Ensure createProfile/onboarding uses an internal role-assignment path that does not require the caller to already be an admin (avoid 'Only admins can assign user roles' traps)."
+  ],
+  "known_issues": [
+    "State persistence: canister data structures (Map.empty, vars) are not declared as stable; user profiles, sessions, roles, balance, and transactions will be lost across canister upgrades unless stable storage/migration is added.",
+    "Ledger integration is not actually implemented: appBalance is a canister variable with no deposit/top-up mechanism shown; sendICPPrize/withdrawICP simply decrement appBalance and log a “success” transaction without calling the ICP ledger canister.",
+    "Wallet UI shows a hardcoded/mock user balance (0) and does not query a real per-user ledger balance; withdrawals deduct from the global appBalance, not from a user-specific balance.",
+    "generateAppIds() returns hard-coded principal/accountId values instead of deriving them from the running canister identity; it is effectively a stub.",
+    "Competition automation is not implemented (also stated in the UI): no scheduled end-of-day winner selection or automatic prize payout; only a boolean competitionActive flag is stored.",
+    "Backend UserProfile.accountId is a placeholder string (\"generated_account_<username>\") and does not match real ICP account identifier logic used in the frontend utility.",
+    "Leaderboard sorting is performed both in backend (query returns sorted) and again in frontend pages; redundant sorting can be removed or aligned.",
+    "Profile creation can fail with 'Unauthorized: Only admins can assign user roles' during createProfile; onboarding role assignment is incorrectly gated by admin permissions."
+  ],
+  "isFixRequest": true,
+  "gameProjectType": "none",
+  "projectName": "TypeFaster",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

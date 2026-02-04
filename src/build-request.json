@@ -1,0 +1,60 @@
+{
+  "kind": "build_request",
+  "title": "Fix profile creation authorization and restore conditional time bonus XP",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Fix backend profile creation so a normal authenticated user can create a profile without triggering any admin-only role assignment checks. Specifically: ensure `createProfile(username)` assigns the default `#user` role for non-first users and `#admin` for the first user without calling any role-assignment path that requires the caller to already be an admin.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-8",
+          "msg-9"
+        ],
+        "quotes": [
+          "When user tries to create profile he gets the error:\n\nProfile creation error: Error: Unauthorized: Only admins can assign user roles",
+          "Please fix this"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A non-admin authenticated user can successfully call `createProfile` and receive a created `UserProfile` without any \"Only admins can assign user roles\" error.",
+        "The first ever user (when `firstUserFlag == null`) is created successfully and becomes admin as before.",
+        "Admin-only role assignment remains protected (e.g., the explicit admin API for assigning roles still traps for non-admin callers)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-8"
+        ],
+        "quotes": [
+          "bring back time bonus where 5XP is awarded for every second before time is out but only if the user didn't skip any word or level and didn't mistyped any word otherwise no bonus is awarded."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the user completes all 5 levels by typing every word correctly (no incorrect words), without using the skip-level flow, the final submitted XP includes an additional `timeRemaining * 5` bonus.",
+        "If the user mistypes at least one word anywhere in the run, the time bonus is 0 even if they finish with time remaining.",
+        "If the user triggers the skip-level flow at least once, the time bonus is 0.",
+        "If the session ends due to timeout or the user presses Finish before completing all required words, the time bonus is 0.",
+        "The XP value sent to `saveChallengeSession` equals (word-score XP across all completed/partial levels) + (time bonus, if eligible)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single-actor Motoko canister with logic centered in `backend/main.mo` (no additional backend services).",
+    "Do not edit files under `frontend/src/components/ui` and do not edit immutable hook paths listed in SYSTEM_CONTEXT."
+  ],
+  "nonGoals": [
+    "Do not implement new gameplay modes or new level content.",
+    "Do not add ledger/real ICP integration or change wallet accounting logic.",
+    "Do not change leaderboard semantics beyond the XP values already produced by the typing challenge."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

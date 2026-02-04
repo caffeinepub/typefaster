@@ -1,0 +1,39 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-03T23:37:07.501Z",
+  "summary": "REQ-2 (conditional time-bonus XP) appears to be implemented per the updated TypingChallenge description in the diff summary, but REQ-1 (fix createProfile authorization to avoid admin-only role assignment checks for normal users) cannot be confirmed from the truncated backend/main.mo changes; there is no visible evidence in the provided snippet that the role assignment path was changed as required. Some non-requested project metadata/summaries were also modified.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Fix backend profile creation so a normal authenticated user can create a profile without triggering any admin-only role assignment checks; createProfile(username) should assign default #user for non-first users and #admin for the first user without calling any admin-protected role-assignment path.",
+      "reason": "The diff snippet for backend/main.mo is truncated inside createProfile and does not show any change to role assignment logic or removal of an admin-only role-assignment call. No explicit evidence is provided that createProfile now assigns #user/#admin directly without invoking an admin-protected path.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Updated/maintained repository meta documentation/state (project_state.json) beyond the requested functional fixes.",
+      "reason": "The BuildRequest only asked for backend createProfile authorization and restoring a typing-challenge XP rule; updating project_state.json is not part of those requirements.",
+      "evidence": [
+        "project_state.json"
+      ]
+    },
+    {
+      "description": "Updated/maintained frontend summary artifact (frontend-file-summaries.txt).",
+      "reason": "The BuildRequest did not request changes to summary/report files; only functional changes for REQ-1/REQ-2.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.55,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/pages/TypingChallenge.tsx",
+    "project_state.json"
+  ]
+}
