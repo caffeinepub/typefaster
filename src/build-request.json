@@ -1,57 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Fix profile creation authorization and restore conditional time bonus XP",
+  "title": "Typing challenge text fixes + completion performance stats persisted to sessions",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Fix backend profile creation so a normal authenticated user can create a profile without triggering any admin-only role assignment checks. Specifically: ensure `createProfile(username)` assigns the default `#user` role for non-first users and `#admin` for the first user without calling any role-assignment path that requires the caller to already be an admin.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8",
-          "msg-9"
-        ],
-        "quotes": [
-          "When user tries to create profile he gets the error:\n\nProfile creation error: Error: Unauthorized: Only admins can assign user roles",
-          "Please fix this"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A non-admin authenticated user can successfully call `createProfile` and receive a created `UserProfile` without any \"Only admins can assign user roles\" error.",
-        "The first ever user (when `firstUserFlag == null`) is created successfully and becomes admin as before.",
-        "Admin-only role assignment remains protected (e.g., the explicit admin API for assigning roles still traps for non-admin callers)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+      "id": "REQ-6",
+      "text": "Update the typing challenge level texts so that each level’s paragraph contains exactly the required number of words for that level (Level 1: 20 words, Level 2: 50 words, Level 3: 100 words, Level 4: 200 words, Level 5: 500 words).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "msg-2",
+          "msg-18"
         ],
         "quotes": [
-          "bring back time bonus where 5XP is awarded for every second before time is out but only if the user didn't skip any word or level and didn't mistyped any word otherwise no bonus is awarded."
+          "Just generate new paragraphs that exactly match the required word count for each level"
         ]
       },
       "acceptanceCriteria": [
-        "When the user completes all 5 levels by typing every word correctly (no incorrect words), without using the skip-level flow, the final submitted XP includes an additional `timeRemaining * 5` bonus.",
-        "If the user mistypes at least one word anywhere in the run, the time bonus is 0 even if they finish with time remaining.",
-        "If the user triggers the skip-level flow at least once, the time bonus is 0.",
-        "If the session ends due to timeout or the user presses Finish before completing all required words, the time bonus is 0.",
-        "The XP value sent to `saveChallengeSession` equals (word-score XP across all completed/partial levels) + (time bonus, if eligible)."
+        "In frontend/src/pages/TypingChallenge.tsx, each LEVELS[n].text split by spaces results in a word count exactly equal to LEVELS[n].wordCount for all 5 levels.",
+        "Completing a level with exactly the required word count no longer triggers any 'exceeded required words' warning due to text/wordCount mismatch."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Remove the 'Main Menu' heading text and the 'Choose an option to continue' subheading text from the main menu page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-18"
+        ],
+        "quotes": [
+          "Remove the “Main Menu” and “Choose an option to continue” text from the main page."
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/src/pages/MainMenu.tsx no longer renders the 'Main Menu' title text.",
+        "frontend/src/pages/MainMenu.tsx no longer renders the 'Choose an option to continue' subtitle text."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "When a typing test session ends (finish normally, finish early, or timeout), display to the user: XP earned, accuracy percentage, words per minute (WPM), number of correct words, number of mistyped words, and number of untyped words (only when untyped words > 0).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5",
+          "msg-16",
+          "msg-18"
+        ],
+        "quotes": [
+          "When test is finished also show to the user Accuracy percentage, speed in terms of wordd per minute, number of correct words, number of mistyped words, number of untyped words (only if it's higher than 0)",
+          "besides those also display XP when test is finished"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The TypingChallenge completion screen shows XP earned and the listed performance metrics.",
+        "Untyped words is not displayed when its value is 0.",
+        "WPM is displayed as a numeric value derived from the session duration."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Persist the displayed completion metrics (XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words) into each saved challenge session in the backend, and update the Stats page session table so each session entry includes these fields (hiding untyped words when 0).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-5",
+          "msg-16",
+          "msg-18"
+        ],
+        "quotes": [
+          "and add all of these to every session entry in the Stats page.",
+          "Also store all of these fields (including XP) in every session entry on the Stats page."
+        ]
+      },
+      "acceptanceCriteria": [
+        "backend/main.mo ChallengeSession data includes fields for xpEarned plus the new metrics (accuracyPercent, wpm, correctWords, mistypedWords, untypedWords) and saveChallengeSession stores them per session.",
+        "frontend save session mutation sends all required fields needed by the backend to store these metrics.",
+        "frontend/src/pages/StatsPage.tsx displays each session entry with XP and the new metrics, and does not show untyped words when the stored value is 0.",
+        "Existing leaderboard behavior based on best session XP continues to work using xpEarned."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister with logic centered in `backend/main.mo` (no additional backend services).",
-    "Do not edit files under `frontend/src/components/ui` and do not edit immutable hook paths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo.",
+    "Do not edit frontend files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Do not implement new gameplay modes or new level content.",
-    "Do not add ledger/real ICP integration or change wallet accounting logic.",
-    "Do not change leaderboard semantics beyond the XP values already produced by the typing challenge."
+    "Implementing ICP ledger integration (balance, transfers, withdrawals).",
+    "Changing authentication (Internet Identity) flows.",
+    "Adding real-time features (WebSockets, push notifications, chat)."
   ],
   "imageRequirements": {
     "required": [],

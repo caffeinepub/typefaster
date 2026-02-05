@@ -33,7 +33,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-primary">
                 TypeFaster
               </h1>
               <p className="text-xs text-muted-foreground">Type faster, win ICP</p>

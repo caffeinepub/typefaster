@@ -1,28 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore conditional time bonus XP in typing challenge",
+  "title": "Typing challenge text fixes and persisted completion metrics (frontend)",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Reinstate time bonus XP (+5 per remaining second) only for fully completed, perfect, non-skipped typing challenge runs, and ensure submitted XP includes the bonus only when eligible.",
+      "id": "REQ-6",
+      "summary": "Replace level paragraphs so each level text contains exactly the required number of words.",
       "acceptanceCriteria": [
-        "When the user completes all 5 levels by typing every word correctly (no incorrect words), without using the skip-level flow, the final submitted XP includes an additional `timeRemaining * 5` bonus.",
-        "If the user mistypes at least one word anywhere in the run, the time bonus is 0 even if they finish with time remaining.",
-        "If the user triggers the skip-level flow at least once, the time bonus is 0.",
-        "If the session ends due to timeout or the user presses Finish before completing all required words, the time bonus is 0.",
-        "The XP value sent to `saveChallengeSession` equals (word-score XP across all completed/partial levels) + (time bonus, if eligible)."
+        "In frontend/src/pages/TypingChallenge.tsx, each LEVELS[n].text split by spaces results in a word count exactly equal to LEVELS[n].wordCount for all 5 levels.",
+        "Completing a level with exactly the required word count no longer triggers any 'exceeded required words' warning due to text/wordCount mismatch."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/TypingChallenge.tsx",
           "operation": "modify",
-          "description": "Update typing challenge completion/scoring to track disqualifying conditions (any mistyped word, any skip-level use, and any skipped words via timeout/early finish/incomplete levels) and compute/apply a time bonus of `timeRemaining * 5` only when the run finishes naturally after typing all words in all 5 levels with zero mistakes and no skips; ensure the XP passed to `saveChallengeSession` is the word-score total plus the eligible time bonus (otherwise plus 0)."
+          "description": "Update LEVELS[*].text strings to new English paragraphs whose space-split word counts exactly match 20/50/100/200/500 respectively, ensuring single spaces only (no double spaces, no leading/trailing spaces) so the existing split(' ') logic matches LEVELS[*].wordCount."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Remove the main menu heading and subheading from the Main Menu page.",
+      "acceptanceCriteria": [
+        "frontend/src/pages/MainMenu.tsx no longer renders the 'Main Menu' title text.",
+        "frontend/src/pages/MainMenu.tsx no longer renders the 'Choose an option to continue' subtitle text."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/MainMenu.tsx",
+          "operation": "modify",
+          "description": "Remove the top header section that renders the 'Main Menu' heading and 'Choose an option to continue' subheading while keeping the grid of navigation cards intact."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Show completion performance metrics (XP, accuracy, WPM, correct/mistyped/untyped words) when the typing session ends for any reason.",
+      "acceptanceCriteria": [
+        "The TypingChallenge completion screen shows XP earned and the listed performance metrics.",
+        "Untyped words is not displayed when its value is 0.",
+        "WPM is displayed as a numeric value derived from the session duration."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TypingChallenge.tsx",
+          "operation": "modify",
+          "description": "Compute and store per-session completion metrics at the time the session ends (finished normally, finished early, or timeout): accuracyPercent, wpm, correctWords, mistypedWords, untypedWords, and xpEarned. Update the completion UI (the isComplete view) to display XP earned, accuracy percentage, WPM, correct words, mistyped words, and conditionally display untyped words only when > 0. Derive WPM from elapsed seconds (TOTAL_TIME_LIMIT - timeRemaining) and handle divide-by-zero safely."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Send and display persisted session metrics alongside XP in the Stats sessions table (frontend wiring to backend interface).",
+      "acceptanceCriteria": [
+        "backend/main.mo ChallengeSession data includes fields for xpEarned plus the new metrics (accuracyPercent, wpm, correctWords, mistypedWords, untypedWords) and saveChallengeSession stores them per session.",
+        "frontend save session mutation sends all required fields needed by the backend to store these metrics.",
+        "frontend/src/pages/StatsPage.tsx displays each session entry with XP and the new metrics, and does not show untyped words when the stored value is 0.",
+        "Existing leaderboard behavior based on best session XP continues to work using xpEarned."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update useSaveChallengeSession to accept and send a ChallengeMetrics object (xpEarned, accuracyPercent, wpm, correctWords, mistypedWords, untypedWords) to the backend saveChallengeSession call, aligning the mutation signature and callsite expectations with frontend/src/backend.d.ts."
         },
         {
-          "path": "frontend/src/utils/typingChallengeScoring.ts",
-          "operation": "create",
-          "description": "Add a small scoring/eligibility helper to compute per-level word XP and detect whether a level completion contains any incorrect typed words, so TypingChallenge can reliably disqualify time-bonus eligibility when a mistype occurs and keep bonus logic consistent."
+          "path": "frontend/src/pages/TypingChallenge.tsx",
+          "operation": "modify",
+          "description": "Update the session-save call to use the updated useSaveChallengeSession mutation by passing the full ChallengeMetrics payload (including xpEarned and computed metrics) so the backend can persist completion stats per session."
+        },
+        {
+          "path": "frontend/src/pages/StatsPage.tsx",
+          "operation": "modify",
+          "description": "Update StatsPage to read session metrics from the saved session structure (using session.metrics.* as defined in frontend/src/backend.d.ts), update total/average XP calculations accordingly, and expand the Challenge History table to include XP plus accuracy %, WPM, correct words, mistyped words, and conditionally untyped words (omit/hide when 0)."
         }
       ]
     }

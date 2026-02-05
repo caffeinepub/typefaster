@@ -91,9 +91,17 @@ export class ExternalBlob {
 }
 export type ICPAmount = bigint;
 export interface ChallengeSession {
+    metrics: ChallengeMetrics;
     user: Principal;
     timestamp: bigint;
+}
+export interface ChallengeMetrics {
+    wpm: bigint;
+    untypedWords: bigint;
+    mistypedWords: bigint;
+    correctWords: bigint;
     xpEarned: bigint;
+    accuracyPercent: number;
 }
 export interface ICPTransaction {
     to: string;
@@ -129,7 +137,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    saveChallengeSession(xpEarned: bigint): Promise<void>;
+    saveChallengeSession(metrics: ChallengeMetrics): Promise<void>;
     setCanisterAccountId(accountId: string): Promise<void>;
     setCompetitionState(state: boolean): Promise<void>;
 }
@@ -346,7 +354,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveChallengeSession(arg0: bigint): Promise<void> {
+    async saveChallengeSession(arg0: ChallengeMetrics): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.saveChallengeSession(arg0);

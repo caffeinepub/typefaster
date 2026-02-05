@@ -12,7 +12,7 @@ interface StatsPageProps {
 export default function StatsPage({ onReturn }: StatsPageProps) {
   const { data: sessions, isLoading } = useGetChallengeSessions();
 
-  const totalXP = sessions ? sessions.reduce((sum, session) => sum + Number(session.xpEarned), 0) : 0;
+  const totalXP = sessions ? sessions.reduce((sum, session) => sum + Number(session.metrics.xpEarned), 0) : 0;
   const totalSessions = sessions ? sessions.length : 0;
   const avgXP = totalSessions > 0 ? Math.round(totalXP / totalSessions) : 0;
 
@@ -101,7 +101,12 @@ export default function StatsPage({ onReturn }: StatsPageProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date & Time</TableHead>
-                    <TableHead className="text-right">XP Earned</TableHead>
+                    <TableHead className="text-right">XP</TableHead>
+                    <TableHead className="text-right">Accuracy</TableHead>
+                    <TableHead className="text-right">WPM</TableHead>
+                    <TableHead className="text-right">Correct</TableHead>
+                    <TableHead className="text-right">Mistyped</TableHead>
+                    <TableHead className="text-right">Untyped</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -109,7 +114,22 @@ export default function StatsPage({ onReturn }: StatsPageProps) {
                     <TableRow key={index}>
                       <TableCell>{formatDate(session.timestamp)}</TableCell>
                       <TableCell className="text-right font-bold text-primary">
-                        {Number(session.xpEarned).toLocaleString()} XP
+                        {Number(session.metrics.xpEarned).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {session.metrics.accuracyPercent.toFixed(1)}%
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.wpm)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.correctWords)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.mistypedWords)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.untypedWords) > 0 ? Number(session.metrics.untypedWords) : '-'}
                       </TableCell>
                     </TableRow>
                   ))}

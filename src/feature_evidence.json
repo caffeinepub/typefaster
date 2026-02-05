@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-restore-the-time-bonus-xp-rule-in-the-typing-challenge-award-5-xp-per-remaining-second-at-the-moment-the-session-ends-only-if-the-user-completed-the-entire-challenge-with-1-zero-mistyped-words-2-no-skipped-level-actions-and-3-no-skipped-words-ending-the-session-early-timing-out-or-skipping-a-level-before-typing-all-words-counts-as-skipped-words-if-any-of-these-conditions-is-violated-award-0-time-bonus",
-      "featureTitle": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+      "featureId": "feature-update-the-typing-challenge-level-texts-so-that-each-level-s-paragraph-contains-exactly-the-required-number-of-words-for-that-level-level-1-20-words-level-2-50-words-level-3-100-words-level-4-200-words-level-5-500-words",
+      "featureTitle": "Update the typing challenge level texts so that each level’s paragraph contains exactly the required number of words for that level (Level 1: 20 words, Level 2: 50 words, Level 3: 100 words, Level 4: 200 words, Level 5: 500 words).",
       "files": [
         "frontend/src/pages/TypingChallenge.tsx"
       ],
@@ -16,7 +16,66 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-the-main-menu-heading-text-and-the-choose-an-option-to-continue-subheading-text-from-the-main-menu-page",
+      "featureTitle": "Remove the 'Main Menu' heading text and the 'Choose an option to continue' subheading text from the main menu page.",
+      "files": [
+        "frontend/src/pages/MainMenu.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-when-a-typing-test-session-ends-finish-normally-finish-early-or-timeout-display-to-the-user-xp-earned-accuracy-percentage-words-per-minute-wpm-number-of-correct-words-number-of-mistyped-words-and-number-of-untyped-words-only-when-untyped-words-0",
+      "featureTitle": "When a typing test session ends (finish normally, finish early, or timeout), display to the user: XP earned, accuracy percentage, words per minute (WPM), number of correct words, number of mistyped words, and number of untyped words (only when untyped words > 0).",
+      "files": [
+        "frontend/src/pages/TypingChallenge.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-persist-the-displayed-completion-metrics-xp-earned-accuracy-wpm-correct-words-mistyped-words-and-untyped-words-into-each-saved-challenge-session-in-the-backend-and-update-the-stats-page-session-table-so-each-session-entry-includes-these-fields-hiding-untyped-words-when-0",
+      "featureTitle": "Persist the displayed completion metrics (XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words) into each saved challenge session in the backend, and update the Stats page session table so each session entry includes these fields (hiding untyped words when 0).",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/StatsPage.tsx",
+        "frontend/src/pages/TypingChallenge.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
       ],
       "confidence": "high"
     }

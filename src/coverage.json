@@ -1,50 +1,79 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-03T23:37:07.543Z",
+  "generatedAt": "2026-02-05T00:57:31.625Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Fix backend profile creation so a normal authenticated user can create a profile without triggering any admin-only role assignment checks. Specifically: ensure `createProfile(username)` assigns the default `#user` role for non-first users and `#admin` for the first user without calling any role-assignment path that requires the caller to already be an admin.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Restore the time bonus XP rule in the typing challenge: award +5 XP per remaining second at the moment the session ends ONLY if the user completed the entire challenge with (1) zero mistyped words, (2) no skipped level actions, and (3) no skipped words (ending the session early, timing out, or skipping a level before typing all words counts as skipped words). If any of these conditions is violated, award 0 time bonus.",
+        "id": "REQ-6",
+        "summary": "Update the typing challenge level texts so that each level’s paragraph contains exactly the required number of words for that level (Level 1: 20 words, Level 2: 50 words, Level 3: 100 words, Level 4: 200 words, Level 5: 500 words).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx",
-          "frontend/src/utils/typingChallengeScoring.ts"
+          "frontend/src/pages/TypingChallenge.tsx"
         ],
         "matchedFiles": [
           "frontend/src/pages/TypingChallenge.tsx"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Remove the 'Main Menu' heading text and the 'Choose an option to continue' subheading text from the main menu page.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/MainMenu.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/MainMenu.tsx"
+        ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "When a typing test session ends (finish normally, finish early, or timeout), display to the user: XP earned, accuracy percentage, words per minute (WPM), number of correct words, number of mistyped words, and number of untyped words (only when untyped words > 0).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/TypingChallenge.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/TypingChallenge.tsx"
+        ]
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Persist the displayed completion metrics (XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words) into each saved challenge session in the backend, and update the Stats page session table so each session entry includes these fields (hiding untyped words when 0).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/TypingChallenge.tsx",
+          "frontend/src/pages/StatsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/TypingChallenge.tsx",
+          "frontend/src/pages/StatsPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
-    "build-template/Dockerfile",
-    "build-template/LICENSE",
-    "build-template/README.md",
-    "build-template/deploy.sh",
-    "build-template/icp.yaml",
-    "build-template/src/backend/canister.yaml",
-    "build-template/src/frontend/canister.yaml",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/MainMenu.tsx",
+    "frontend/src/pages/StatsPage.tsx",
     "frontend/src/pages/TypingChallenge.tsx",
     "project_state.json",
     "scratch/component-selection.json",

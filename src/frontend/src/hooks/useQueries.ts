@@ -2,7 +2,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
 import type { UserProfile } from '../types';
-import type { ChallengeSession, ICPTransaction } from '../backend';
+import type { ChallengeSession, ICPTransaction, ChallengeMetrics } from '../backend';
+
+// Local type for frontend (using number instead of bigint for easier calculations)
+interface LocalChallengeMetrics {
+  xpEarned: number;
+  accuracyPercent: number;
+  wpm: number;
+  correctWords: number;
+  mistypedWords: number;
+  untypedWords: number;
+}
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -101,9 +111,20 @@ export function useSaveChallengeSession() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (xpEarned: number) => {
+    mutationFn: async (metrics: LocalChallengeMetrics) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveChallengeSession(BigInt(xpEarned));
+      
+      // Convert local metrics (number) to backend format (bigint)
+      const backendMetrics: ChallengeMetrics = {
+        xpEarned: BigInt(Math.round(metrics.xpEarned)),
+        accuracyPercent: metrics.accuracyPercent,
+        wpm: BigInt(Math.round(metrics.wpm)),
+        correctWords: BigInt(Math.round(metrics.correctWords)),
+        mistypedWords: BigInt(Math.round(metrics.mistypedWords)),
+        untypedWords: BigInt(Math.round(metrics.untypedWords)),
+      };
+      
+      return actor.saveChallengeSession(backendMetrics);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['challengeSessions'] });

@@ -27,10 +27,18 @@ export const ICPTransaction = IDL.Record({
   'timestamp' : IDL.Int,
   'amount' : ICPAmount,
 });
+export const ChallengeMetrics = IDL.Record({
+  'wpm' : IDL.Int,
+  'untypedWords' : IDL.Int,
+  'mistypedWords' : IDL.Int,
+  'correctWords' : IDL.Int,
+  'xpEarned' : IDL.Int,
+  'accuracyPercent' : IDL.Float64,
+});
 export const ChallengeSession = IDL.Record({
+  'metrics' : ChallengeMetrics,
   'user' : IDL.Principal,
   'timestamp' : IDL.Int,
-  'xpEarned' : IDL.Int,
 });
 
 export const idlService = IDL.Service({
@@ -61,7 +69,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'saveChallengeSession' : IDL.Func([IDL.Int], [], []),
+  'saveChallengeSession' : IDL.Func([ChallengeMetrics], [], []),
   'setCanisterAccountId' : IDL.Func([IDL.Text], [], []),
   'setCompetitionState' : IDL.Func([IDL.Bool], [], []),
 });
@@ -88,10 +96,18 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Int,
     'amount' : ICPAmount,
   });
+  const ChallengeMetrics = IDL.Record({
+    'wpm' : IDL.Int,
+    'untypedWords' : IDL.Int,
+    'mistypedWords' : IDL.Int,
+    'correctWords' : IDL.Int,
+    'xpEarned' : IDL.Int,
+    'accuracyPercent' : IDL.Float64,
+  });
   const ChallengeSession = IDL.Record({
+    'metrics' : ChallengeMetrics,
     'user' : IDL.Principal,
     'timestamp' : IDL.Int,
-    'xpEarned' : IDL.Int,
   });
   
   return IDL.Service({
@@ -126,7 +142,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'saveChallengeSession' : IDL.Func([IDL.Int], [], []),
+    'saveChallengeSession' : IDL.Func([ChallengeMetrics], [], []),
     'setCanisterAccountId' : IDL.Func([IDL.Text], [], []),
     'setCompetitionState' : IDL.Func([IDL.Bool], [], []),
   });

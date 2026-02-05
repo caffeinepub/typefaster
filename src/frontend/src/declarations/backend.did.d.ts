@@ -10,10 +10,18 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface ChallengeMetrics {
+  'wpm' : bigint,
+  'untypedWords' : bigint,
+  'mistypedWords' : bigint,
+  'correctWords' : bigint,
+  'xpEarned' : bigint,
+  'accuracyPercent' : number,
+}
 export interface ChallengeSession {
+  'metrics' : ChallengeMetrics,
   'user' : Principal,
   'timestamp' : bigint,
-  'xpEarned' : bigint,
 }
 export type ICPAmount = bigint;
 export interface ICPTransaction {
@@ -48,7 +56,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'saveChallengeSession' : ActorMethod<[bigint], undefined>,
+  'saveChallengeSession' : ActorMethod<[ChallengeMetrics], undefined>,
   'setCanisterAccountId' : ActorMethod<[string], undefined>,
   'setCompetitionState' : ActorMethod<[boolean], undefined>,
 }

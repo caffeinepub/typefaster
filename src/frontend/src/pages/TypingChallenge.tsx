@@ -15,38 +15,54 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { Clock, Zap, Target, Home, Trophy, SkipForward, CheckCircle } from 'lucide-react';
+import { Clock, Zap, Target, Home, Trophy, SkipForward, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface TypingChallengeProps {
   onReturn: () => void;
+}
+
+// Local type for frontend calculations (using number instead of bigint)
+interface LocalChallengeMetrics {
+  xpEarned: number;
+  accuracyPercent: number;
+  wpm: number;
+  correctWords: number;
+  mistypedWords: number;
+  untypedWords: number;
 }
 
 const LEVELS = [
   {
     level: 1,
     wordCount: 20,
-    text: 'The quick brown fox jumps over the lazy dog near the riverbank where children play with colorful kites on sunny afternoons.',
+    text: 'The quick brown fox jumps over the lazy dog while children play with colorful kites on sunny afternoons near the peaceful riverbank.',
   },
   {
     level: 2,
     wordCount: 50,
-    text: 'Technology has revolutionized the way we communicate and interact with each other in modern society. From smartphones to social media platforms, digital innovation continues to shape our daily lives in unprecedented ways. The internet connects billions of people across the globe, enabling instant communication and access to vast amounts of information at our fingertips.',
+    text: 'Technology has revolutionized the way we communicate and interact with each other in modern society today. From smartphones to social media platforms digital innovation continues to shape our daily lives in unprecedented ways around the world. The internet connects billions of people across the globe enabling instant communication and access to vast amounts of information.',
   },
   {
     level: 3,
     wordCount: 100,
-    text: 'Artificial intelligence and machine learning are transforming industries worldwide, from healthcare to finance, transportation to entertainment. These technologies enable computers to learn from data, recognize patterns, and make decisions with minimal human intervention. As AI systems become more sophisticated, they are being integrated into everyday applications, helping us solve complex problems and automate routine tasks. The potential benefits are enormous, but so are the ethical considerations and challenges we must address. Privacy concerns, algorithmic bias, and the impact on employment are just a few of the critical issues that society must navigate as we embrace this technological revolution.',
+    text: 'Artificial intelligence and machine learning are transforming industries worldwide from healthcare to finance transportation to entertainment and beyond. These technologies enable computers to learn from data recognize patterns and make decisions with minimal human intervention required. As AI systems become more sophisticated they are being integrated into everyday applications helping us solve complex problems and automate routine tasks efficiently. The potential benefits are enormous but so are the ethical considerations and challenges we must address carefully. Privacy concerns algorithmic bias and the impact on employment are just a few of the critical issues that society must navigate as we embrace this technological revolution together.',
   },
   {
     level: 4,
     wordCount: 200,
-    text: 'Climate change represents one of the most pressing challenges facing humanity in the twenty-first century. Rising global temperatures, melting ice caps, and increasingly severe weather events are clear indicators that our planet is undergoing significant environmental transformation. Scientists worldwide have reached a consensus that human activities, particularly the burning of fossil fuels and deforestation, are the primary drivers of these changes. The consequences are far-reaching, affecting ecosystems, agriculture, water resources, and human health. Coastal communities face the threat of rising sea levels, while inland regions experience more frequent droughts and wildfires. To address this crisis, governments, businesses, and individuals must work together to reduce greenhouse gas emissions, transition to renewable energy sources, and implement sustainable practices. Innovation in clean technology, changes in consumer behavior, and international cooperation are all essential components of the solution. The decisions we make today will determine the quality of life for future generations and the health of our planet for centuries to come.',
+    text: 'Climate change represents one of the most pressing challenges facing humanity in the twenty first century today. Rising global temperatures melting ice caps and increasingly severe weather events are clear indicators that our planet is undergoing significant environmental transformation right now. Scientists worldwide have reached a consensus that human activities particularly the burning of fossil fuels and deforestation are the primary drivers of these changes we observe. The consequences are far reaching affecting ecosystems agriculture water resources and human health across all continents. Coastal communities face the threat of rising sea levels while inland regions experience more frequent droughts and wildfires annually. To address this crisis governments businesses and individuals must work together to reduce greenhouse gas emissions transition to renewable energy sources and implement sustainable practices everywhere. Innovation in clean technology changes in consumer behavior and international cooperation are all essential components of the solution we need. The decisions we make today will determine the quality of life for future generations and the health of our planet for centuries to come ahead.',
   },
   {
     level: 5,
     wordCount: 500,
-    text: 'The history of human civilization is a testament to our species remarkable ability to adapt, innovate, and overcome challenges. From the earliest hunter-gatherer societies to the complex urban centers of today, humans have continuously evolved their social structures, technologies, and cultural practices. The agricultural revolution, which began approximately ten thousand years ago, marked a pivotal turning point in human history. By domesticating plants and animals, our ancestors were able to establish permanent settlements, leading to the development of cities, writing systems, and organized governments. This transformation laid the foundation for all subsequent human achievements. The industrial revolution of the eighteenth and nineteenth centuries brought about another dramatic shift, as mechanization and mass production fundamentally altered the way people lived and worked. Factories replaced farms as the primary source of employment, and urbanization accelerated at an unprecedented pace. The twentieth century witnessed even more rapid change, with advances in medicine, transportation, and communication reshaping society in profound ways. The invention of the automobile, airplane, telephone, and television connected people across vast distances and transformed daily life. The digital revolution of the late twentieth and early twenty-first centuries has ushered in the information age, where knowledge and data have become the most valuable commodities. The internet, personal computers, and mobile devices have created a globally interconnected world where information flows freely and instantaneously. Social media platforms have changed how we communicate, share ideas, and form communities. E-commerce has revolutionized retail, while streaming services have transformed entertainment. Looking ahead, emerging technologies such as artificial intelligence, quantum computing, biotechnology, and renewable energy promise to bring about even more dramatic changes. These innovations have the potential to solve some of humanitys greatest challenges, from disease and poverty to climate change and resource scarcity. However, they also raise important ethical questions and potential risks that society must carefully consider. As we stand on the threshold of this new era, it is crucial that we approach these developments with wisdom, foresight, and a commitment to ensuring that technological progress benefits all of humanity.',
+    text: 'The history of human civilization is a testament to our species remarkable ability to adapt innovate and overcome challenges throughout time. From the earliest hunter gatherer societies to the complex urban centers of today humans have continuously evolved their social structures technologies and cultural practices over millennia. The agricultural revolution which began approximately ten thousand years ago marked a pivotal turning point in human history forever. By domesticating plants and animals our ancestors were able to establish permanent settlements leading to the development of cities writing systems and organized governments across regions. This transformation laid the foundation for all subsequent human achievements we celebrate today. The industrial revolution of the eighteenth and nineteenth centuries brought about another dramatic shift as mechanization and mass production fundamentally altered the way people lived and worked everywhere. Factories replaced farms as the primary source of employment and urbanization accelerated at an unprecedented pace worldwide. The twentieth century witnessed even more rapid change with advances in medicine transportation and communication reshaping society in profound ways never seen before. The invention of the automobile airplane telephone and television connected people across vast distances and transformed daily life completely. The digital revolution of the late twentieth and early twenty first centuries has ushered in the information age where knowledge and data have become the most valuable commodities available. The internet personal computers and mobile devices have created a globally interconnected world where information flows freely and instantaneously everywhere. Social media platforms have changed how we communicate share ideas and form communities online. E commerce has revolutionized retail while streaming services have transformed entertainment consumption patterns. Looking ahead emerging technologies such as artificial intelligence quantum computing biotechnology and renewable energy promise to bring about even more dramatic changes soon. These innovations have the potential to solve some of humanitys greatest challenges from disease and poverty to climate change and resource scarcity worldwide. However they also raise important ethical questions and potential risks that society must carefully consider together. As we stand on the threshold of this new era it is crucial that we approach these developments with wisdom foresight and a commitment to ensuring that technological progress benefits all of humanity equally.',
   },
 ];
 
@@ -61,11 +77,15 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   const [isStarted, setIsStarted] = useState(false);
   const [showSkipDialog, setShowSkipDialog] = useState(false);
   const [completionReason, setCompletionReason] = useState<'manual' | 'timeout' | 'finished'>('finished');
+  const [showExceededTooltip, setShowExceededTooltip] = useState(false);
   
   // Track time bonus eligibility
   const [hasMistype, setHasMistype] = useState(false);
   const [hasSkippedLevel, setHasSkippedLevel] = useState(false);
   const [hasSkippedWord, setHasSkippedWord] = useState(false);
+  
+  // Track completion metrics (using local type with number)
+  const [completionMetrics, setCompletionMetrics] = useState<LocalChallengeMetrics | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const saveChallengeSession = useSaveChallengeSession();
@@ -74,6 +94,10 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   const words = currentLevelData.text.split(' ');
   const typedWords = userInput.trim().split(' ');
   const progress = (typedWords.length / words.length) * 100;
+  const requiredWords = currentLevelData.wordCount;
+
+  // Check if user exceeded required words
+  const hasExceededWords = typedWords.length > requiredWords;
 
   useEffect(() => {
     if (!isStarted || isComplete) return;
@@ -92,8 +116,63 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     return () => clearInterval(timer);
   }, [isStarted, isComplete]);
 
+  // Show exceeded tooltip when user types beyond required words
+  useEffect(() => {
+    if (hasExceededWords) {
+      setShowExceededTooltip(true);
+    } else {
+      setShowExceededTooltip(false);
+    }
+  }, [hasExceededWords]);
+
+  const calculateMetrics = (): LocalChallengeMetrics => {
+    let correctWords = 0;
+    let mistypedWords = 0;
+    let untypedWords = 0;
+    let totalXP = 0;
+    
+    const typedWordsArray = userInput.trim().split(' ');
+
+    typedWordsArray.forEach((typedWord, index) => {
+      if (index < words.length) {
+        if (typedWord === words[index]) {
+          correctWords++;
+          totalXP += 5;
+        } else if (typedWord !== '') {
+          mistypedWords++;
+          totalXP -= 10;
+          if (!hasMistype) {
+            setHasMistype(true);
+          }
+        }
+      }
+    });
+
+    // Count untyped words
+    untypedWords = Math.max(0, words.length - typedWordsArray.length);
+
+    // Calculate accuracy
+    const totalWordsAttempted = correctWords + mistypedWords;
+    const accuracyPercent = totalWordsAttempted > 0 ? (correctWords / totalWordsAttempted) * 100 : 0;
+
+    // Calculate WPM
+    const elapsedSeconds = TOTAL_TIME_LIMIT - timeRemaining;
+    const elapsedMinutes = elapsedSeconds / 60;
+    const wpm = elapsedMinutes > 0 ? Math.round(correctWords / elapsedMinutes) : 0;
+
+    return {
+      xpEarned: totalXP,
+      accuracyPercent,
+      wpm,
+      correctWords,
+      mistypedWords,
+      untypedWords,
+    };
+  };
+
   const handleTimeUp = async () => {
-    const levelXP = calculateXP();
+    const metrics = calculateMetrics();
+    const levelXP = metrics.xpEarned;
     const finalXP = xp + levelXP;
     
     // Timeout means incomplete, so no time bonus
@@ -101,9 +180,16 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     
     setXp(finalXP);
     setCompletionReason('timeout');
+    
+    // Calculate final metrics with updated XP
+    const finalMetrics: LocalChallengeMetrics = {
+      ...metrics,
+      xpEarned: finalXP,
+    };
+    setCompletionMetrics(finalMetrics);
     setIsComplete(true);
     toast.error('Time is up! Challenge ended.');
-    await handleChallengeComplete(finalXP);
+    await handleChallengeComplete(finalMetrics);
   };
 
   const handleStart = () => {
@@ -112,6 +198,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     setHasMistype(false);
     setHasSkippedLevel(false);
     setHasSkippedWord(false);
+    setCompletionMetrics(null);
     inputRef.current?.focus();
   };
 
@@ -122,15 +209,13 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     typedWordsArray.forEach((typedWord, index) => {
       if (index < words.length) {
         if (typedWord === words[index]) {
-          totalXP += 5; // Correct word
+          totalXP += 5;
         } else if (typedWord !== '') {
-          totalXP -= 10; // Incorrect word (only if typed)
-          // Mark that we had a mistype
+          totalXP -= 10;
           if (!hasMistype) {
             setHasMistype(true);
           }
         }
-        // Untyped words contribute 0 XP
       }
     });
 
@@ -149,17 +234,53 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     } else {
       // Completed all 5 levels naturally
       setCompletionReason('finished');
+      const metrics = calculateMetrics();
+      
+      // Calculate time bonus
+      let timeBonus = 0;
+      const eligibleForBonus = !hasMistype && !hasSkippedLevel && !hasSkippedWord;
+      
+      if (eligibleForBonus && timeRemaining > 0) {
+        timeBonus = timeRemaining * 5;
+        toast.success(`Perfect run! Time bonus: +${timeBonus} XP (${timeRemaining}s remaining)`);
+      }
+      
+      const finalXP = newTotalXP + timeBonus;
+      setXp(finalXP);
+      
+      const finalMetrics: LocalChallengeMetrics = {
+        ...metrics,
+        xpEarned: finalXP,
+      };
+      setCompletionMetrics(finalMetrics);
       setIsComplete(true);
-      handleChallengeComplete(newTotalXP);
+      handleChallengeComplete(finalMetrics);
     }
   };
 
   const handleNextLevel = () => {
+    const typedWordsCount = typedWords.length;
+    
+    // If exceeded required words, show tooltip and don't advance
+    if (typedWordsCount > requiredWords) {
+      setShowExceededTooltip(true);
+      toast.warning(`You've exceeded the required ${requiredWords} words. Please complete the level with exactly ${requiredWords} words.`);
+      return;
+    }
+    
+    // If exactly at required words, advance immediately
+    if (typedWordsCount === requiredWords) {
+      handleLevelComplete();
+      return;
+    }
+    
+    // If less than required words, show skip confirmation
     setShowSkipDialog(true);
   };
 
   const handleFinish = async () => {
-    const levelXP = calculateXP();
+    const metrics = calculateMetrics();
+    const levelXP = metrics.xpEarned;
     const finalXP = xp + levelXP;
     
     // Check if we completed all words in the current level
@@ -173,9 +294,15 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     
     setXp(finalXP);
     setCompletionReason('manual');
+    
+    const finalMetrics: LocalChallengeMetrics = {
+      ...metrics,
+      xpEarned: finalXP,
+    };
+    setCompletionMetrics(finalMetrics);
     setIsComplete(true);
     toast.success('Challenge finished!');
-    await handleChallengeComplete(finalXP);
+    await handleChallengeComplete(finalMetrics);
   };
 
   const confirmSkipLevel = () => {
@@ -195,26 +322,9 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     }
   };
 
-  const handleChallengeComplete = async (baseXP: number) => {
+  const handleChallengeComplete = async (metrics: LocalChallengeMetrics) => {
     try {
-      // Calculate time bonus
-      let timeBonus = 0;
-      
-      // Only award time bonus if:
-      // 1. No mistypes
-      // 2. No skipped levels
-      // 3. No skipped words (completed all 5 levels fully)
-      // 4. Finished naturally (not timeout or manual early finish)
-      const eligibleForBonus = !hasMistype && !hasSkippedLevel && !hasSkippedWord && completionReason === 'finished';
-      
-      if (eligibleForBonus && timeRemaining > 0) {
-        timeBonus = timeRemaining * 5;
-        toast.success(`Perfect run! Time bonus: +${timeBonus} XP (${timeRemaining}s remaining)`);
-      }
-      
-      const finalXP = baseXP + timeBonus;
-      
-      await saveChallengeSession.mutateAsync(finalXP);
+      await saveChallengeSession.mutateAsync(metrics);
       toast.success('Session saved successfully!');
     } catch (error: any) {
       console.error('Failed to save session:', error);
@@ -321,7 +431,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     );
   }
 
-  if (isComplete) {
+  if (isComplete && completionMetrics) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center space-y-2">
@@ -337,18 +447,32 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center py-8">
-              <p className="text-5xl font-bold text-primary">{xp} XP</p>
+              <p className="text-5xl font-bold text-primary">{completionMetrics.xpEarned} XP</p>
               <p className="text-muted-foreground mt-2">Total XP Earned</p>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-2xl font-bold">{currentLevel + 1}</p>
-                <p className="text-sm text-muted-foreground">Levels Completed</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-2xl font-bold">{completionMetrics.accuracyPercent.toFixed(1)}%</p>
+                <p className="text-sm text-muted-foreground">Accuracy</p>
               </div>
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-2xl font-bold">{formatTime(TOTAL_TIME_LIMIT - timeRemaining)}</p>
-                <p className="text-sm text-muted-foreground">Time Taken</p>
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-2xl font-bold">{completionMetrics.wpm}</p>
+                <p className="text-sm text-muted-foreground">Words Per Minute</p>
               </div>
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-2xl font-bold">{completionMetrics.correctWords}</p>
+                <p className="text-sm text-muted-foreground">Correct Words</p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-2xl font-bold">{completionMetrics.mistypedWords}</p>
+                <p className="text-sm text-muted-foreground">Mistyped Words</p>
+              </div>
+              {completionMetrics.untypedWords > 0 && (
+                <div className="p-4 bg-muted/50 rounded-lg text-center col-span-2">
+                  <p className="text-2xl font-bold">{completionMetrics.untypedWords}</p>
+                  <p className="text-sm text-muted-foreground">Untyped Words</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -366,90 +490,103 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   const isLastLevel = currentLevel === LEVELS.length - 1;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Level {currentLevel + 1} of {LEVELS.length}</h2>
-          <p className="text-muted-foreground">{currentLevelData.wordCount} words</p>
-        </div>
-        <div className="text-right">
-          <div className="flex items-center gap-2 text-2xl font-bold">
-            <Clock className="w-6 h-6" />
-            {formatTime(timeRemaining)}
-          </div>
-          <p className="text-sm text-muted-foreground">Current XP: {xp}</p>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Type the following text:</CardTitle>
-          <Progress value={progress} className="mt-2" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <p className="text-lg leading-relaxed font-mono">{currentLevelData.text}</p>
-          </div>
+    <TooltipProvider>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <Input
-              ref={inputRef}
-              value={userInput}
-              onChange={handleInputChange}
-              onPaste={handlePaste}
-              onDrop={handleDrop}
-              onContextMenu={handleContextMenu}
-              placeholder="Start typing here..."
-              className="text-lg font-mono"
-              autoFocus
-            />
+            <h2 className="text-2xl font-bold">Level {currentLevel + 1} of {LEVELS.length}</h2>
+            <p className="text-muted-foreground">{currentLevelData.wordCount} words</p>
           </div>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Words typed: {typedWords.length} / {words.length}</span>
-            <span>Progress: {Math.round(progress)}%</span>
+          <div className="text-right">
+            <div className="flex items-center gap-2 text-2xl font-bold">
+              <Clock className="w-6 h-6" />
+              {formatTime(timeRemaining)}
+            </div>
+            <p className="text-sm text-muted-foreground">Current XP: {xp}</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="flex justify-center gap-4">
-        {isLastLevel ? (
-          <Button
-            onClick={handleFinish}
-            variant="default"
-            size="lg"
-            className="gap-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Finish
-          </Button>
-        ) : (
-          <Button
-            onClick={handleNextLevel}
-            variant="outline"
-            size="lg"
-            className="gap-2"
-          >
-            <SkipForward className="w-4 h-4" />
-            Next Level
-          </Button>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Type the following text:</CardTitle>
+            <Progress value={progress} className="mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-lg leading-relaxed font-mono">{currentLevelData.text}</p>
+            </div>
+            <div>
+              <Input
+                ref={inputRef}
+                value={userInput}
+                onChange={handleInputChange}
+                onPaste={handlePaste}
+                onDrop={handleDrop}
+                onContextMenu={handleContextMenu}
+                placeholder="Start typing here..."
+                className="text-lg font-mono"
+                autoFocus
+              />
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <Tooltip open={showExceededTooltip}>
+                <TooltipTrigger asChild>
+                  <span className={`flex items-center gap-2 ${hasExceededWords ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                    {hasExceededWords && <AlertTriangle className="w-4 h-4" />}
+                    Words typed: {typedWords.length} / {requiredWords}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-destructive text-destructive-foreground">
+                  <p className="font-semibold">⚠️ Exceeded required words!</p>
+                  <p className="text-sm">You've typed more than {requiredWords} words.</p>
+                </TooltipContent>
+              </Tooltip>
+              <span className="text-muted-foreground">Progress: {Math.round(progress)}%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-center gap-4">
+          {isLastLevel ? (
+            <Button
+              onClick={handleFinish}
+              variant="default"
+              size="lg"
+              className="gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Finish
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNextLevel}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+            >
+              <SkipForward className="w-4 h-4" />
+              Next Level
+            </Button>
+          )}
+        </div>
+
+        <AlertDialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Skip to Next Level?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You haven't typed the required {requiredWords} words yet. Skipping will save your current progress but you'll miss out on potential XP. Note: Skipping disqualifies you from the time bonus.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmSkipLevel}>
+                Skip
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      <AlertDialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Skip to Next Level?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to skip to Level {currentLevel + 2}? Your current progress will be saved with XP calculated only for words you've typed so far. Note: Skipping disqualifies you from the time bonus.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSkipLevel}>
-              Skip Level
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </TooltipProvider>
   );
 }

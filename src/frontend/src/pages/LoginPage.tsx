@@ -40,7 +40,7 @@ export default function LoginPage() {
             alt="Hands typing on a gaming keyboard with RGB lighting"
             className="w-full max-w-2xl mx-auto rounded-lg shadow-2xl"
           />
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold text-primary">
             TypeFaster
           </h1>
           <p className="text-xl text-muted-foreground">Type faster, win ICP</p>

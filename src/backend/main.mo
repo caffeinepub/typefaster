@@ -6,10 +6,16 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
 import Iter "mo:core/Iter";
+import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+// Use Migration.run on upgrade to migrate existing state to new one.
+// This is opt-in and only needs to be specified on legacy systems;
+// new actors are migrated by simply adding the new actor into `main.mo`
+// and removing obsolete bits.
+(with migration = Migration.run)
 actor {
   type UserProfile = {
     username : Text;
@@ -18,10 +24,19 @@ actor {
     isAdmin : Bool;
   };
 
+  type ChallengeMetrics = {
+    xpEarned : Int;
+    accuracyPercent : Float;
+    wpm : Int;
+    correctWords : Int;
+    mistypedWords : Int;
+    untypedWords : Int;
+  };
+
   type ChallengeSession = {
     user : Principal;
     timestamp : Int;
-    xpEarned : Int;
+    metrics : ChallengeMetrics;
   };
 
   type ICPBalance = Nat64;
@@ -119,8 +134,8 @@ actor {
   };
 
   public shared ({ caller }) func createProfile(username : Text) : async UserProfile {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: Anonymous users cannot create profiles");
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can create profiles");
     };
 
     switch (userProfiles.get(caller)) {
@@ -165,7 +180,7 @@ actor {
     userProfile;
   };
 
-  public shared ({ caller }) func saveChallengeSession(xpEarned : Int) : async () {
+  public shared ({ caller }) func saveChallengeSession(metrics : ChallengeMetrics) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can save challenge sessions");
     };
@@ -173,7 +188,7 @@ actor {
     let session : ChallengeSession = {
       user = caller;
       timestamp = Time.now();
-      xpEarned;
+      metrics;
     };
 
     switch (challengeSessions.get(caller)) {
@@ -242,10 +257,10 @@ actor {
     switch (challengeSessions.get(user)) {
       case (?sessions) {
         if (sessions.size() == 0) { return 0 };
-        var best : Int = sessions[0].xpEarned;
+        var best : Int = sessions[0].metrics.xpEarned;
         for (session in sessions.vals()) {
-          if (session.xpEarned > best) {
-            best := session.xpEarned;
+          if (session.metrics.xpEarned > best) {
+            best := session.metrics.xpEarned;
           };
         };
         best;

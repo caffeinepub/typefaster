@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix profile creation authorization for normal authenticated users and restore conditional time bonus XP in the typing challenge.
+**Goal:** Fix typing challenge copy issues, simplify the main menu header area, and show/persist detailed completion performance stats per session.
 
 **Planned changes:**
-- Backend: Update `createProfile(username)` so non-admin authenticated users can create a profile without hitting admin-only role assignment checks; automatically assign `#user` for non-first users and `#admin` for the first-ever user.
-- Backend: Keep explicit admin-only role assignment APIs protected and unchanged for non-admin callers.
-- Frontend: Restore time bonus XP calculation: award `timeRemaining * 5` only when the user completes the entire challenge with zero mistyped words, no skipped levels, and no skipped words; otherwise award 0 bonus.
-- Frontend: Ensure the XP value sent to `saveChallengeSession` equals word-score XP plus the eligible time bonus.
+- Update TypingChallenge level paragraphs so each level text has an exact word count match (20/50/100/200/500) to prevent mismatch warnings.
+- Remove the “Main Menu” title and “Choose an option to continue” subtitle from the main menu page.
+- On typing session end (normal finish, early finish, or timeout), display: XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words (only when > 0).
+- Persist these completion metrics into saved challenge sessions in the backend, send the fields from the frontend when saving, and update the Stats page session table to display them (hiding untyped words when stored as 0) while keeping leaderboard XP behavior intact.
 
-**User-visible outcome:** Users can create a profile successfully without admin errors, and the typing challenge again awards time-based bonus XP only for fully completed, mistake-free, non-skipped runs.
+**User-visible outcome:** Players see corrected level texts, a cleaner main menu, detailed performance stats on completion, and those same metrics saved and visible for each session in the Stats page.

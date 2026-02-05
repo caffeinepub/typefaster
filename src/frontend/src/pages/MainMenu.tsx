@@ -10,11 +10,6 @@ interface MainMenuProps {
 export default function MainMenu({ onNavigate }: MainMenuProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">Main Menu</h2>
-        <p className="text-muted-foreground">Choose an option to continue</p>
-      </div>
-
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => onNavigate('challenge')}>
           <CardHeader>
