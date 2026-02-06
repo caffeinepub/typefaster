@@ -1,96 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Typing challenge text fixes + completion performance stats persisted to sessions",
+  "title": "Fix typed-word counting edge case, polish landing/results layouts, and remove Donate section",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-6",
-      "text": "Update the typing challenge level texts so that each level’s paragraph contains exactly the required number of words for that level (Level 1: 20 words, Level 2: 50 words, Level 3: 100 words, Level 4: 200 words, Level 5: 500 words).",
+      "text": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2",
-          "msg-18"
+          "recent-messages-4",
+          "recent-messages-6"
         ],
         "quotes": [
-          "Just generate new paragraphs that exactly match the required word count for each level"
+          "Looks like if user dhasn't typed any character for a level, the app still counts 1 typed word for that level so make sure 0 typed words are counted until user types at least a character and doesn't delete the word before clicking \"Next level\""
         ]
       },
       "acceptanceCriteria": [
-        "In frontend/src/pages/TypingChallenge.tsx, each LEVELS[n].text split by spaces results in a word count exactly equal to LEVELS[n].wordCount for all 5 levels.",
-        "Completing a level with exactly the required word count no longer triggers any 'exceeded required words' warning due to text/wordCount mismatch."
+        "With an empty input (no characters typed), the on-screen “Words typed” count shows 0 (not 1).",
+        "If the user types characters and then deletes them so the input becomes empty again, the “Words typed” count returns to 0.",
+        "Clicking “Next Level” with an empty input does not record/reflect 1 typed word anywhere in the level’s progression or displayed counters.",
+        "Progress calculation does not advance when the input is empty (progress remains 0%)."
       ]
     },
     {
       "id": "REQ-7",
-      "text": "Remove the 'Main Menu' heading text and the 'Choose an option to continue' subheading text from the main menu page.",
+      "text": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-18"
+          "recent-messages-4"
         ],
         "quotes": [
-          "Remove the “Main Menu” and “Choose an option to continue” text from the main page."
+          "For the landing page make sure the \"Top Players\" box and \"Get Started\" box both match the size of the smaller \"5 Levels\" \"Earn XP\" and \"Win ICP\" boxes added together so that page looks professional"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/src/pages/MainMenu.tsx no longer renders the 'Main Menu' title text.",
-        "frontend/src/pages/MainMenu.tsx no longer renders the 'Choose an option to continue' subtitle text."
+        "On desktop (md and up), the “Top Players” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
+        "On desktop (md and up), the “Get Started” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
+        "Spacing, alignment, and card sizing look consistent across the section (no obviously mismatched card heights or awkward gaps).",
+        "On mobile/small screens, the layout remains readable and does not overflow horizontally."
       ]
     },
     {
       "id": "REQ-8",
-      "text": "When a typing test session ends (finish normally, finish early, or timeout), display to the user: XP earned, accuracy percentage, words per minute (WPM), number of correct words, number of mistyped words, and number of untyped words (only when untyped words > 0).",
+      "text": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-16",
-          "msg-18"
+          "recent-messages-4"
         ],
         "quotes": [
-          "When test is finished also show to the user Accuracy percentage, speed in terms of wordd per minute, number of correct words, number of mistyped words, number of untyped words (only if it's higher than 0)",
-          "besides those also display XP when test is finished"
+          "For the test results, modify the size of the box containing WPM so that \"not available (test duration < 60 secs) appears on a single line and make sure to adjust the other boxes as well so that page looks professional"
         ]
       },
       "acceptanceCriteria": [
-        "The TypingChallenge completion screen shows XP earned and the listed performance metrics.",
-        "Untyped words is not displayed when its value is 0.",
-        "WPM is displayed as a numeric value derived from the session duration."
+        "When the test duration is under 60 seconds, the WPM value text “not available (test duration < 60 secs)” renders on a single line (no wrapping).",
+        "The results stat cards/tiles remain visually consistent (padding, alignment, and sizing) after resizing the WPM tile.",
+        "The results layout remains responsive and does not overflow on small screens."
       ]
     },
     {
       "id": "REQ-9",
-      "text": "Persist the displayed completion metrics (XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words) into each saved challenge session in the backend, and update the Stats page session table so each session entry includes these fields (hiding untyped words when 0).",
-      "target": "both",
+      "text": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-16",
-          "msg-18"
+          "recent-messages-6"
         ],
         "quotes": [
-          "and add all of these to every session entry in the Stats page.",
-          "Also store all of these fields (including XP) in every session entry on the Stats page."
+          "remove the \"Donate here\" section from the footer for now"
         ]
       },
       "acceptanceCriteria": [
-        "backend/main.mo ChallengeSession data includes fields for xpEarned plus the new metrics (accuracyPercent, wpm, correctWords, mistypedWords, untypedWords) and saveChallengeSession stores them per session.",
-        "frontend save session mutation sends all required fields needed by the backend to store these metrics.",
-        "frontend/src/pages/StatsPage.tsx displays each session entry with XP and the new metrics, and does not show untyped words when the stored value is 0.",
-        "Existing leaderboard behavior based on best session XP continues to work using xpEarned."
+        "The UI no longer shows any “Donate here:” text anywhere in the footer/landing page area.",
+        "No donation account id is displayed in the UI.",
+        "The rest of the landing page spacing looks intentional after removal (no large empty gap where the section was)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with all logic in backend/main.mo.",
-    "Do not edit frontend files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
-    "Use English for all user-facing text."
+    "Frontend files listed as immutable in SYSTEM_CONTEXT must not be edited (compose existing UI components instead).",
+    "Keep all changes within the existing single-actor Motoko backend architecture; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Implementing ICP ledger integration (balance, transfers, withdrawals).",
-    "Changing authentication (Internet Identity) flows.",
-    "Adding real-time features (WebSockets, push notifications, chat)."
+    "Implementing ICP ledger integration, real prize transfers, or enabling the currently-stubbed wallet/prize flows.",
+    "Changing authentication (Internet Identity) behavior or role/access-control policies.",
+    "Redesigning unrelated pages beyond the landing page and the post-challenge results layout adjustments requested."
   ],
   "imageRequirements": {
     "required": [],

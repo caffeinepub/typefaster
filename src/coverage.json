@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:57:31.625Z",
+  "generatedAt": "2026-02-06T01:01:27.054Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-6",
-        "summary": "Update the typing challenge level texts so that each level’s paragraph contains exactly the required number of words for that level (Level 1: 20 words, Level 2: 50 words, Level 3: 100 words, Level 4: 200 words, Level 5: 500 words).",
+        "summary": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/TypingChallenge.tsx"
@@ -23,18 +23,18 @@
       },
       {
         "id": "REQ-7",
-        "summary": "Remove the 'Main Menu' heading text and the 'Choose an option to continue' subheading text from the main menu page.",
+        "summary": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/MainMenu.tsx"
+          "frontend/src/pages/LoginPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/MainMenu.tsx"
+          "frontend/src/pages/LoginPage.tsx"
         ]
       },
       {
         "id": "REQ-8",
-        "summary": "When a typing test session ends (finish normally, finish early, or timeout), display to the user: XP earned, accuracy percentage, words per minute (WPM), number of correct words, number of mistyped words, and number of untyped words (only when untyped words > 0).",
+        "summary": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/TypingChallenge.tsx"
@@ -45,35 +45,23 @@
       },
       {
         "id": "REQ-9",
-        "summary": "Persist the displayed completion metrics (XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words) into each saved challenge session in the backend, and update the Stats page session table so each session entry includes these fields (hiding untyped words when 0).",
+        "summary": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/TypingChallenge.tsx",
-          "frontend/src/pages/StatsPage.tsx"
+          "frontend/src/pages/LoginPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/TypingChallenge.tsx",
-          "frontend/src/pages/StatsPage.tsx"
+          "frontend/src/pages/LoginPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/MainMenu.tsx",
-    "frontend/src/pages/StatsPage.tsx",
+    "frontend/src/pages/LoginPage.tsx",
     "frontend/src/pages/TypingChallenge.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -42,27 +42,27 @@ const LEVELS = [
   {
     level: 1,
     wordCount: 20,
-    text: 'The quick brown fox jumps over the lazy dog while children play with colorful kites on sunny afternoons near the peaceful riverbank.',
+    text: 'The quick brown fox jumps over the lazy dog while children play with kites on sunny afternoons near the riverbank',
   },
   {
     level: 2,
     wordCount: 50,
-    text: 'Technology has revolutionized the way we communicate and interact with each other in modern society today. From smartphones to social media platforms digital innovation continues to shape our daily lives in unprecedented ways around the world. The internet connects billions of people across the globe enabling instant communication and access to vast amounts of information.',
+    text: 'Technology has revolutionized the way we communicate and interact with each other in modern society. From smartphones to social media, digital innovation continues to shape our lives in unprecedented ways around the world. The internet connects people across the globe enabling instant communication and access to vast amounts of information',
   },
   {
     level: 3,
     wordCount: 100,
-    text: 'Artificial intelligence and machine learning are transforming industries worldwide from healthcare to finance transportation to entertainment and beyond. These technologies enable computers to learn from data recognize patterns and make decisions with minimal human intervention required. As AI systems become more sophisticated they are being integrated into everyday applications helping us solve complex problems and automate routine tasks efficiently. The potential benefits are enormous but so are the ethical considerations and challenges we must address carefully. Privacy concerns algorithmic bias and the impact on employment are just a few of the critical issues that society must navigate as we embrace this technological revolution together.',
+    text: 'Artificial intelligence and machine learning are transforming industries worldwide from healthcare to finance transportation to entertainment and beyond. These technologies enable computers to learn from data recognize patterns and make decisions with minimal human intervention required. As AI systems become more sophisticated they are being integrated into everyday applications helping us solve complex problems and automate tasks efficiently. The potential benefits are enormous but so are the ethical challenges we must address carefully. Privacy concerns algorithmic bias and the impact on employment are just a few of the critical issues that society must navigate as we embrace this technological revolution',
   },
   {
     level: 4,
     wordCount: 200,
-    text: 'Climate change represents one of the most pressing challenges facing humanity in the twenty first century today. Rising global temperatures melting ice caps and increasingly severe weather events are clear indicators that our planet is undergoing significant environmental transformation right now. Scientists worldwide have reached a consensus that human activities particularly the burning of fossil fuels and deforestation are the primary drivers of these changes we observe. The consequences are far reaching affecting ecosystems agriculture water resources and human health across all continents. Coastal communities face the threat of rising sea levels while inland regions experience more frequent droughts and wildfires annually. To address this crisis governments businesses and individuals must work together to reduce greenhouse gas emissions transition to renewable energy sources and implement sustainable practices everywhere. Innovation in clean technology changes in consumer behavior and international cooperation are all essential components of the solution we need. The decisions we make today will determine the quality of life for future generations and the health of our planet for centuries to come ahead.',
+    text: 'Climate change represents one of the most pressing challenges facing humanity in the twenty-first century today. Rising global temperatures, melting ice caps, and increasingly severe weather events are clear indicators that our planet is undergoing significant environmental transformation right now. Scientists worldwide have reached a consensus that human activities, particularly the burning of fossil fuels and widespread deforestation, are the primary drivers of these alarming changes we currently observe. The consequences are far-reaching, affecting delicate ecosystems, global agriculture, essential water resources, and human health across all continents. Coastal communities face the imminent threat of rising sea levels while inland regions experience more frequent droughts and devastating wildfires annually. To effectively address this crisis, governments, businesses, and ordinary individuals must work collaboratively together to substantially reduce greenhouse gas emissions, transition rapidly to renewable energy sources, and implement sustainable practices everywhere immediately. Innovation in clean technology, fundamental changes in consumer behavior, and strengthened international cooperation are all absolutely essential components of the comprehensive solution we urgently need right now. The bold critical decisions we make today will ultimately determine the overall quality of life for many coming future generations and the long-term health of our precious planet for centuries to come ahead',
   },
   {
     level: 5,
     wordCount: 500,
-    text: 'The history of human civilization is a testament to our species remarkable ability to adapt innovate and overcome challenges throughout time. From the earliest hunter gatherer societies to the complex urban centers of today humans have continuously evolved their social structures technologies and cultural practices over millennia. The agricultural revolution which began approximately ten thousand years ago marked a pivotal turning point in human history forever. By domesticating plants and animals our ancestors were able to establish permanent settlements leading to the development of cities writing systems and organized governments across regions. This transformation laid the foundation for all subsequent human achievements we celebrate today. The industrial revolution of the eighteenth and nineteenth centuries brought about another dramatic shift as mechanization and mass production fundamentally altered the way people lived and worked everywhere. Factories replaced farms as the primary source of employment and urbanization accelerated at an unprecedented pace worldwide. The twentieth century witnessed even more rapid change with advances in medicine transportation and communication reshaping society in profound ways never seen before. The invention of the automobile airplane telephone and television connected people across vast distances and transformed daily life completely. The digital revolution of the late twentieth and early twenty first centuries has ushered in the information age where knowledge and data have become the most valuable commodities available. The internet personal computers and mobile devices have created a globally interconnected world where information flows freely and instantaneously everywhere. Social media platforms have changed how we communicate share ideas and form communities online. E commerce has revolutionized retail while streaming services have transformed entertainment consumption patterns. Looking ahead emerging technologies such as artificial intelligence quantum computing biotechnology and renewable energy promise to bring about even more dramatic changes soon. These innovations have the potential to solve some of humanitys greatest challenges from disease and poverty to climate change and resource scarcity worldwide. However they also raise important ethical questions and potential risks that society must carefully consider together. As we stand on the threshold of this new era it is crucial that we approach these developments with wisdom foresight and a commitment to ensuring that technological progress benefits all of humanity equally.',
+    text: 'The history of human civilization stands as a profound testament to our species\' remarkable ability to adapt, innovate, and overcome challenges throughout the ages. From the earliest hunter-gatherer societies navigating the harsh realities of the wild to the sprawling, complex urban centers of the modern era, humans have continuously evolved their social structures, technologies, and cultural practices over millennia. This endless journey is marked by a relentless drive for improvement, pushing boundaries and redefining precisely what is truly possible for our entire collective future.The agricultural revolution, which began approximately ten thousand years ago, marked a truly pivotal turning point in human history. By shifting from foraging to farming, our ancestors domesticated key plants and animals, a strategic move that allowed them to establish permanent settlements. This stability led to the birth of cities, sophisticated writing systems, and organized governments across various regions. This fundamental transformation laid the foundation for complex economies and all subsequent human achievements that we celebrate and study with such admiration today.The industrial revolution of the eighteenth and nineteenth centuries brought about another dramatic shift that redefined the human experience. As mechanization, steam power, and mass production were introduced, they fundamentally altered the way people lived, worked, and interacted with their local environment. Factories quickly replaced farms as the primary source of employment, and urbanization accelerated at an unprecedented pace, creating dense hubs of vibrant industrial activity. This era birthed new social classes and transformed economies globally, setting the stage for modern global capitalism.The twentieth century witnessed even more rapid and transformative change with massive advances in medicine, transportation, and communication reshaping modern society. The invention of the automobile, airplane, telephone, and television connected people across vast distances, effectively shrinking the entire globe. The invention of vaccines and antibiotics further extended human life expectancy. These innovations broke down physical barriers and transformed daily life completely, allowing for a level of global interaction that was previously unimaginable, setting the stage for a more interconnected global community to thrive.The digital revolution of the late twentieth and early twenty-first centuries has ushered in the information age, where knowledge and data have become the most valuable commodities worldwide. The internet, personal computers, and mobile devices have created a truly globally interconnected world where information flows freely and instantaneously across the globe. Social media platforms have revolutionized how we communicate, share ideas, and form diverse communities online effectively. Meanwhile, e-commerce has revolutionized retail shopping, while streaming services have transformed entertainment consumption habits for everyone everywhere.Looking ahead, emerging technologies such as artificial intelligence, quantum computing, biotechnology, and renewable energy promise rapid, dramatic changes soon. These innovations have the potential to solve some of humanity\'s greatest challenges, from disease and poverty to climate change and resource scarcity worldwide. However, they also raise important ethical questions and potential risks that society must carefully consider together. As we stand on the threshold of this new era, we must approach these developments with wisdom, ensuring technological progress benefits all of humanity equally',
   },
 ];
 
@@ -92,12 +92,17 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
 
   const currentLevelData = LEVELS[currentLevel];
   const words = currentLevelData.text.split(' ');
-  const typedWords = userInput.trim().split(' ');
-  const progress = (typedWords.length / words.length) * 100;
+  
+  // Fix: Properly count typed words - return empty array if input is empty or only whitespace
+  const typedWords = userInput.trim() === '' ? [] : userInput.trim().split(' ');
+  const typedWordsCount = typedWords.length;
+  
+  // Fix: Progress should be 0 when no words are typed
+  const progress = typedWordsCount > 0 ? (typedWordsCount / words.length) * 100 : 0;
   const requiredWords = currentLevelData.wordCount;
 
   // Check if user exceeded required words
-  const hasExceededWords = typedWords.length > requiredWords;
+  const hasExceededWords = typedWordsCount > requiredWords;
 
   useEffect(() => {
     if (!isStarted || isComplete) return;
@@ -128,17 +133,17 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   const calculateMetrics = (): LocalChallengeMetrics => {
     let correctWords = 0;
     let mistypedWords = 0;
-    let untypedWords = 0;
     let totalXP = 0;
     
-    const typedWordsArray = userInput.trim().split(' ');
+    // Fix: Properly filter typed words to exclude empty strings
+    const typedWordsArray = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
 
     typedWordsArray.forEach((typedWord, index) => {
       if (index < words.length) {
         if (typedWord === words[index]) {
           correctWords++;
           totalXP += 5;
-        } else if (typedWord !== '') {
+        } else {
           mistypedWords++;
           totalXP -= 10;
           if (!hasMistype) {
@@ -148,8 +153,9 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
       }
     });
 
-    // Count untyped words
-    untypedWords = Math.max(0, words.length - typedWordsArray.length);
+    // Count untyped words: total words in all levels minus words user actually typed
+    const totalWordsInAllLevels = LEVELS.reduce((sum, level) => sum + level.text.split(' ').length, 0);
+    const untypedWords = Math.max(0, totalWordsInAllLevels - typedWordsArray.length);
 
     // Calculate accuracy
     const totalWordsAttempted = correctWords + mistypedWords;
@@ -157,8 +163,12 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
 
     // Calculate WPM
     const elapsedSeconds = TOTAL_TIME_LIMIT - timeRemaining;
-    const elapsedMinutes = elapsedSeconds / 60;
-    const wpm = elapsedMinutes > 0 ? Math.round(correctWords / elapsedMinutes) : 0;
+    let wpm = 0;
+    
+    if (elapsedSeconds >= 60) {
+      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+      wpm = Math.floor(correctWords / elapsedMinutes);
+    }
 
     return {
       xpEarned: totalXP,
@@ -204,13 +214,14 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
 
   const calculateXP = () => {
     let totalXP = 0;
-    const typedWordsArray = userInput.trim().split(' ');
+    // Fix: Properly filter typed words to exclude empty strings
+    const typedWordsArray = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
 
     typedWordsArray.forEach((typedWord, index) => {
       if (index < words.length) {
         if (typedWord === words[index]) {
           totalXP += 5;
-        } else if (typedWord !== '') {
+        } else {
           totalXP -= 10;
           if (!hasMistype) {
             setHasMistype(true);
@@ -259,7 +270,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   };
 
   const handleNextLevel = () => {
-    const typedWordsCount = typedWords.length;
+    // Fix: Use the corrected typedWordsCount
     
     // If exceeded required words, show tooltip and don't advance
     if (typedWordsCount > requiredWords) {
@@ -284,7 +295,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     const finalXP = xp + levelXP;
     
     // Check if we completed all words in the current level
-    const typedWordsArray = userInput.trim().split(' ');
+    const typedWordsArray = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
     const allWordsTyped = typedWordsArray.length >= words.length;
     
     // If not all words typed or not on last level, mark as skipped
@@ -336,7 +347,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     const value = e.target.value;
     setUserInput(value);
 
-    const currentTypedWords = value.trim().split(' ');
+    const currentTypedWords = value.trim() === '' ? [] : value.trim().split(' ').filter(w => w !== '');
     if (currentTypedWords.length >= words.length && value.endsWith(' ')) {
       handleLevelComplete();
     }
@@ -375,6 +386,14 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     }
   };
 
+  const getWPMDisplay = (metrics: LocalChallengeMetrics): string => {
+    const elapsedSeconds = TOTAL_TIME_LIMIT - timeRemaining;
+    if (elapsedSeconds < 60) {
+      return 'not available (test duration < 60 secs)';
+    }
+    return metrics.wpm.toString();
+  };
+
   if (!isStarted) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
@@ -389,27 +408,27 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
             <CardDescription>Read carefully before starting</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert>
-              <Target className="h-4 w-4" />
-              <AlertDescription>
+            <Alert className="flex items-start gap-3">
+              <Target className="h-4 w-4 mt-0.5 shrink-0" />
+              <AlertDescription className="flex-1">
                 <strong>Scoring:</strong> +5 XP per correct word, -10 XP per incorrect word. Untyped words = 0 XP.
               </AlertDescription>
             </Alert>
-            <Alert>
-              <Clock className="h-4 w-4" />
-              <AlertDescription>
+            <Alert className="flex items-start gap-3">
+              <Clock className="h-4 w-4 mt-0.5 shrink-0" />
+              <AlertDescription className="flex-1">
                 <strong>Time Limit:</strong> 10 minutes total for all 5 levels. Challenge ends automatically when time runs out.
               </AlertDescription>
             </Alert>
-            <Alert>
-              <Zap className="h-4 w-4" />
-              <AlertDescription>
+            <Alert className="flex items-start gap-3">
+              <Zap className="h-4 w-4 mt-0.5 shrink-0" />
+              <AlertDescription className="flex-1">
                 <strong>Time Bonus:</strong> Complete all 5 levels perfectly (no mistypes, no skips) to earn +5 XP per remaining second!
               </AlertDescription>
             </Alert>
-            <Alert>
-              <Trophy className="h-4 w-4" />
-              <AlertDescription>
+            <Alert className="flex items-start gap-3">
+              <Trophy className="h-4 w-4 mt-0.5 shrink-0" />
+              <AlertDescription className="flex-1">
                 <strong>Levels:</strong> Progress through 20, 50, 100, 200, and 500-word challenges. You can finish early on Level 5.
               </AlertDescription>
             </Alert>
@@ -450,13 +469,13 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
               <p className="text-5xl font-bold text-primary">{completionMetrics.xpEarned} XP</p>
               <p className="text-muted-foreground mt-2">Total XP Earned</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 bg-muted/50 rounded-lg text-center">
                 <p className="text-2xl font-bold">{completionMetrics.accuracyPercent.toFixed(1)}%</p>
                 <p className="text-sm text-muted-foreground">Accuracy</p>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-bold">{completionMetrics.wpm}</p>
+                <p className="text-lg sm:text-2xl font-bold whitespace-nowrap">{getWPMDisplay(completionMetrics)}</p>
                 <p className="text-sm text-muted-foreground">Words Per Minute</p>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg text-center">
@@ -468,7 +487,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
                 <p className="text-sm text-muted-foreground">Mistyped Words</p>
               </div>
               {completionMetrics.untypedWords > 0 && (
-                <div className="p-4 bg-muted/50 rounded-lg text-center col-span-2">
+                <div className="p-4 bg-muted/50 rounded-lg text-center sm:col-span-2">
                   <p className="text-2xl font-bold">{completionMetrics.untypedWords}</p>
                   <p className="text-sm text-muted-foreground">Untyped Words</p>
                 </div>
@@ -533,7 +552,7 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
                 <TooltipTrigger asChild>
                   <span className={`flex items-center gap-2 ${hasExceededWords ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
                     {hasExceededWords && <AlertTriangle className="w-4 h-4" />}
-                    Words typed: {typedWords.length} / {requiredWords}
+                    Words typed: {typedWordsCount} / {requiredWords}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="bg-destructive text-destructive-foreground">

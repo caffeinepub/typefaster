@@ -311,14 +311,27 @@ export default function AdminDashboard({ onReturn }: AdminDashboardProps) {
           <CardTitle>Competition Rules</CardTitle>
           <CardDescription>How the daily competition works</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p>• When active, all challenge sessions count toward the daily leaderboard</p>
-          <p>
-            • <strong>The user with the highest individual session score wins</strong>
-          </p>
-          <p>• Winner receives 1 ICP automatically at the end of the day</p>
-          <p>• Competition resets daily at midnight UTC</p>
-          <p>• Admin users are excluded from public leaderboards and competition rankings</p>
+        <CardContent className="space-y-3 text-sm">
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground">•</span>
+            <p className="flex-1">When active, all challenge sessions count toward the daily leaderboard</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground">•</span>
+            <p className="flex-1"><strong>The user with the highest individual session score wins</strong></p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground">•</span>
+            <p className="flex-1">Winner receives 1 ICP automatically at the end of the day</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground">•</span>
+            <p className="flex-1">Competition resets daily at midnight UTC</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground">•</span>
+            <p className="flex-1">Admin users are excluded from public leaderboards and competition rankings</p>
+          </div>
         </CardContent>
       </Card>
 

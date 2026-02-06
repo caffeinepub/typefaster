@@ -1,7 +1,30 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 8,
+  "projectStateVersion": 14,
   "summary": "TypeFaster is a React + TypeScript (Vite) web dapp deployed on the Internet Computer with a Motoko backend canister. Users authenticate via Internet Identity, create a username profile, and play a 5-level timed typing challenge to earn XP. Completed sessions are stored in the canister and used to power personal stats/history and a global leaderboard (best single-session XP, excluding admins). The app also includes an admin-gated dashboard to toggle a competition flag and display canister identity metadata, plus wallet/prize UI flows for ICP that are present in the frontend but currently stubbed pending ICP ledger backend integration.",
+  "architectural_notes": [
+    "Frontend uses React Query (@tanstack/react-query) as the primary async data/cache layer, with query keys commonly scoped by the authenticated principal string.",
+    "Authentication is implemented via an InternetIdentityProvider wrapping DFINITY AuthClient, with persisted identity loading on mount and a long-lived delegation TTL (30 days).",
+    "IC integration uses an “actor per identity” pattern: useActor creates an anonymous actor when logged out and an identity-bound actor when logged in.",
+    "Backend authorization is enforced in Motoko via an AccessControl module and a MixinAuthorization mixin, using role checks (#admin/#user/#guest) at method boundaries.",
+    "Admin bootstrap uses an environment variable (CAFFEINE_ADMIN_TOKEN) combined with a client-provided secret read from the URL hash/session storage.",
+    "UI is built with TailwindCSS and shadcn-style components (cards, dialogs, tooltips, switches), with lucide-react icons and sonner toasts.",
+    "Navigation is implemented as a simple in-app page state machine (menu/challenge/stats/wallet/leaderboard/admin) rather than a router library.",
+    "Client derives ICP ledger-style account identifiers from Principals using Web Crypto (SHA-256 truncated to SHA-224) plus CRC32 checksum."
+  ],
+  "known_issues": [
+    "ICP ledger integration is not implemented: useGetAppCanisterBalance returns a mock 0 balance; useSendICPPrize and useWithdrawICP throw errors; backend has no corresponding ledger transfer/balance methods.",
+    "Backend transactionHistory is never populated (no methods append transactions), so the Admin Dashboard transaction list will stay empty.",
+    "Authorization bootstrap canister method _initializeAccessControlWithSecret traps if CAFFEINE_ADMIN_TOKEN is not set, which can break authenticated actor initialization.",
+    "AccessControl admin assignment depends on the correct secret token being provided; this conflicts with UI messaging that “the first user to create a profile becomes owner/admin.”",
+    "Backend createProfile sets UserProfile.isAdmin based on firstUserFlag but does not synchronize AccessControl roles, potentially causing UI/admin gating inconsistencies.",
+    "TypingChallenge uses words.length (text word count) for auto level completion, but uses level.wordCount (requiredWords) for Next Level gating; if these diverge, UX can become inconsistent or impossible to satisfy precisely.",
+    "Backend UserProfile.accountId is a placeholder string (\"generated_account_<username>\") and does not match the real ICP account identifier derived client-side.",
+    "Canister state (profiles, sessions, roles, flags) is not stored in stable variables and will be lost on canister upgrade.",
+    "Internet Identity provider URL is read from process.env.II_URL; in a Vite frontend this may be undefined unless explicitly configured/bridged.",
+    "Untyped word count is incorrect when skipping/finishing; intended logic is (total level words - words actually typed, even if incorrect)."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "IF-1",
@@ -253,32 +276,57 @@
       "version": 1
     },
     {
-      "id": "feature-update-the-typing-challenge-level-texts-so-that-each-level-s-paragraph-contains-exactly-the-required-number-of-words-for-that-level-level-1-20-words-level-2-50-words-level-3-100-words-level-4-200-words-level-5-500-words",
-      "title": "Update the typing challenge level texts so that each level’s paragraph contains exactly the required number of words for that level (Level 1: 20 words, Level 2: 50 words, Level 3: 100 words, Level 4: 200 words, Level 5: 500 words).",
+      "id": "IF-22",
+      "title": "Post-completion performance stats (accuracy/WPM/word breakdown) with session persistence",
+      "synonyms": [
+        "challenge results stats",
+        "accuracy percent",
+        "WPM",
+        "correct/mistyped/untyped counts",
+        "session stats persistence"
+      ],
+      "description": "On typing challenge completion, computes and displays additional performance stats (accuracy %, WPM, correct words, mistyped words, and untyped words when > 0) alongside XP, and persists these fields into stored session records so the Stats page can render them per session.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-23",
+      "title": "Typing level texts aligned to exact required word counts",
+      "synonyms": [
+        "level paragraph word count fix",
+        "requiredWords alignment"
+      ],
+      "description": "Updates each typing level paragraph so its word count matches the level’s required word count to prevent exceeded/required word-count UX mismatches.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-typed-word-counting-so-that-a-level-reports-0-typed-words-until-the-user-has-entered-at-least-one-non-whitespace-character-that-remains-i-e-do-not-count-1-typed-word-when-the-input-is-empty-and-do-not-count-a-word-if-the-user-typed-it-and-then-deleted-it-before-clicking-next-level-update-all-ui-counters-progress-and-any-gating-logic-that-depends-on-typed-word-counts-to-use-this-corrected-logic",
+      "title": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
       "reqIds": [
         "REQ-6"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-the-main-menu-heading-text-and-the-choose-an-option-to-continue-subheading-text-from-the-main-menu-page",
-      "title": "Remove the 'Main Menu' heading text and the 'Choose an option to continue' subheading text from the main menu page.",
+      "id": "feature-adjust-the-landing-page-layout-so-the-top-players-card-and-the-get-started-card-each-visually-match-the-combined-size-of-two-of-the-smaller-feature-cards-5-levels-earn-xp-win-icp-when-viewed-on-typical-desktop-breakpoints-creating-a-more-professional-balanced-layout",
+      "title": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
       "reqIds": [
         "REQ-7"
       ],
       "version": 1
     },
     {
-      "id": "feature-when-a-typing-test-session-ends-finish-normally-finish-early-or-timeout-display-to-the-user-xp-earned-accuracy-percentage-words-per-minute-wpm-number-of-correct-words-number-of-mistyped-words-and-number-of-untyped-words-only-when-untyped-words-0",
-      "title": "When a typing test session ends (finish normally, finish early, or timeout), display to the user: XP earned, accuracy percentage, words per minute (WPM), number of correct words, number of mistyped words, and number of untyped words (only when untyped words > 0).",
+      "id": "feature-polish-the-test-results-post-challenge-completion-layout-so-the-wpm-display-fits-on-a-single-line-when-it-reads-not-available-test-duration-60-secs-and-adjust-the-surrounding-stat-boxes-to-maintain-a-professional-consistent-appearance",
+      "title": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
       "reqIds": [
         "REQ-8"
       ],
       "version": 1
     },
     {
-      "id": "feature-persist-the-displayed-completion-metrics-xp-earned-accuracy-wpm-correct-words-mistyped-words-and-untyped-words-into-each-saved-challenge-session-in-the-backend-and-update-the-stats-page-session-table-so-each-session-entry-includes-these-fields-hiding-untyped-words-when-0",
-      "title": "Persist the displayed completion metrics (XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words) into each saved challenge session in the backend, and update the Stats page session table so each session entry includes these fields (hiding untyped words when 0).",
+      "id": "feature-remove-the-donate-here-section-from-the-app-s-footer-area-landing-view-for-now-remove-the-ui-block-showing-donate-here-and-the-donation-account-id",
+      "title": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
       "reqIds": [
         "REQ-9"
       ],
@@ -288,46 +336,53 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update each typing level paragraph text so it contains exactly the required word count for that level (to prevent incorrect 'exceeded/required words' warnings).",
+      "summary": "Challenge Rules page: align each rule text vertically",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Remove 'Main Menu' and 'Choose an option to continue' text from the main page (options are self-explanatory).",
+      "summary": "Fix word counting: compute untyped words as (total words in level - number of words user actually typed, including incorrect)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "On test completion, display XP plus performance stats (accuracy %, WPM, correct words, mistyped words, and untyped words only if > 0) and persist these fields into each session entry shown on the Stats page.",
+      "summary": "WPM calculation/display: show \"not available (test duration < 60 secs)\" if finished before 60s; otherwise WPM = total typed words / integer minutes elapsed",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Update level 1–5 paragraphs to the exact provided texts",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Fix typed-word counting: if user types no characters for a level, count 0 typed words (don’t count 1 unless at least one character was entered and not deleted before clicking Next Level)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Landing page layout: make the \"Top Players\" and \"Get Started\" boxes match the combined size of the smaller \"5 Levels\"/\"Earn XP\"/\"Win ICP\" boxes for a more professional look",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Test results layout: resize the WPM box so \"not available (test duration < 60 secs)\" fits on one line and adjust the other boxes to keep the page looking professional",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Remove the \"Donate here\" section from the footer (temporarily)",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "architectural_notes": [
-    "Frontend uses React Query (@tanstack/react-query) as the primary async data/cache layer, with query keys commonly scoped by the authenticated principal string.",
-    "Authentication is implemented via an InternetIdentityProvider wrapping DFINITY AuthClient, with persisted identity loading on mount and a long-lived delegation TTL (30 days).",
-    "IC integration uses an “actor per identity” pattern: useActor creates an anonymous actor when logged out and an identity-bound actor when logged in.",
-    "Backend authorization is enforced in Motoko via an AccessControl module and a MixinAuthorization mixin, using role checks (#admin/#user/#guest) at method boundaries.",
-    "Admin bootstrap uses an environment variable (CAFFEINE_ADMIN_TOKEN) combined with a client-provided secret read from the URL hash/session storage.",
-    "UI is built with TailwindCSS and shadcn-style components (cards, dialogs, tooltips, switches), with lucide-react icons and sonner toasts.",
-    "Navigation is implemented as a simple in-app page state machine (menu/challenge/stats/wallet/leaderboard/admin) rather than a router library.",
-    "Client derives ICP ledger-style account identifiers from Principals using Web Crypto (SHA-256 truncated to SHA-224) plus CRC32 checksum."
-  ],
-  "known_issues": [
-    "ICP ledger integration is not implemented: useGetAppCanisterBalance returns a mock 0 balance; useSendICPPrize and useWithdrawICP throw errors; backend has no corresponding ledger transfer/balance methods.",
-    "Backend transactionHistory is never populated (no methods append transactions), so the Admin Dashboard transaction list will stay empty.",
-    "Authorization bootstrap canister method _initializeAccessControlWithSecret traps if CAFFEINE_ADMIN_TOKEN is not set, which can break authenticated actor initialization.",
-    "AccessControl admin assignment depends on the correct secret token being provided; this conflicts with UI messaging that “the first user to create a profile becomes owner/admin.”",
-    "Backend createProfile sets UserProfile.isAdmin based on firstUserFlag but does not synchronize AccessControl roles, potentially causing UI/admin gating inconsistencies.",
-    "TypingChallenge uses words.length (text word count) for auto level completion, but uses level.wordCount (requiredWords) for Next Level gating; if these diverge, UX can become inconsistent or impossible to satisfy precisely.",
-    "Backend UserProfile.accountId is a placeholder string (\"generated_account_<username>\") and does not match the real ICP account identifier derived client-side.",
-    "Canister state (profiles, sessions, roles, flags) is not stored in stable variables and will be lost on canister upgrade.",
-    "Internet Identity provider URL is read from process.env.II_URL; in a Vite frontend this may be undefined unless explicitly configured/bridged.",
-    "frontend/src/components/SetAppPrincipalModal.tsx exists but is empty/placeholder."
-  ],
-  "isFixRequest": false,
   "gameProjectType": "none",
   "projectName": "TypeFaster",
   "clarification_mode": "pro",

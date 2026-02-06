@@ -1,68 +1,24 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:57:31.585Z",
-  "summary": "REQ-7 appears implemented (MainMenu heading/subheading removed). Backend and frontend introduce a new ChallengeMetrics/metrics structure for sessions, but the diff is truncated, so it’s not fully verifiable that sessions are saved with the new metrics and that leaderboard/best-session XP continues to work off xpEarned. REQ-6/REQ-8/REQ-9 UI aspects are claimed in summaries but not fully provable from the truncated TypingChallenge/StatsPage diffs (notably Level 5 text and conditional display rules). Several additional, unrequested UI changes and a migration system were added.",
+  "generatedAt": "2026-02-06T01:01:27.051Z",
+  "summary": "The diff shows updates to the landing page (LoginPage) and the typing challenge (TypingChallenge), plus updates to documentation/state summary files. REQ-6, REQ-7, and REQ-8 are indicated as addressed in the modified page files, but REQ-9 cannot be fully verified because no footer component change is present in the modified-files list (only the landing page view is evidenced).",
   "missing_requirements": [
     {
-      "id": "REQ-6",
-      "requirement": "Update typing challenge level texts so each level paragraph contains exactly the required number of words (20/50/100/200/500) and no mismatch warnings occur due to text/wordCount mismatch.",
-      "reason": "TypingChallenge.tsx is truncated; Level 5 text is cut off and exact word counts for all 5 levels cannot be verified from the provided diff excerpt.",
-      "evidence": [
-        "frontend/src/pages/TypingChallenge.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "requirement": "At session end (normal/early/timeout), display XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words (only if > 0), with WPM derived from session duration.",
-      "reason": "TypingChallenge.tsx changes are truncated; the completion screen rendering and the conditional 'untyped words when > 0' logic and WPM derivation cannot be confirmed from the excerpt.",
-      "evidence": [
-        "frontend/src/pages/TypingChallenge.tsx (truncated)"
-      ]
-    },
-    {
       "id": "REQ-9",
-      "requirement": "Persist completion metrics into each saved challenge session in the backend; frontend save mutation sends required fields; Stats page displays these fields per session (hide untyped when 0); leaderboard best-session XP continues to work using xpEarned.",
-      "reason": "Backend/main.mo is truncated; while new ChallengeSession/ChallengeMetrics types are shown, it is not verifiable that saveChallengeSession stores the new metrics, nor that best-session XP/leaderboard logic was updated to use metrics.xpEarned. Frontend save mutation and Stats table rendering are also truncated, so sending/storing/displaying all fields (and hiding untyped=0) cannot be fully confirmed.",
+      "requirement": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
+      "reason": "The landing page file is modified and the summary states the donation section was removed there, but there is no code evidence in the diff summary that the footer component itself was updated. Since REQ-9 explicitly mentions the footer area/landing view, removal from the footer cannot be confirmed from the provided modified-files list.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/hooks/useQueries.ts (truncated)",
-        "frontend/src/pages/StatsPage.tsx (truncated)"
+        "frontend/src/pages/LoginPage.tsx (truncated)",
+        "frontend-file-summaries.txt (truncated)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Added an explicit backend state migration module and configured actor upgrades to run Migration.run.",
-      "reason": "Not requested by any requirement; BuildRequest only asked to persist and display new session metrics, not to add an upgrade migration system.",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (with migration = Migration.run)"
-      ]
-    },
-    {
-      "description": "Main menu includes Wallet-related copy implying balance/withdrawal functionality (“Manage your ICP”, “withdraw ICP”).",
-      "reason": "The BuildRequest lists ICP ledger integration (balance, transfers, withdrawals) as a non-goal; adding/promoting wallet/withdrawal UX is outside the requested typing/stats fixes.",
-      "evidence": [
-        "frontend/src/pages/MainMenu.tsx"
-      ]
-    },
-    {
-      "description": "Broad additional frontend changes (App routing/auth error-handling adjustments, branding style changes, footer attribution, admin dashboard/wallet/leaderboard/login page updates, global CSS theme changes).",
-      "reason": "Not requested in REQ-6 through REQ-9; appears to be extra scope beyond typing text fixes and session metric persistence/display.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    }
-  ],
-  "confidence": 0.62,
+  "hallucinated_features": [],
+  "confidence": 0.64,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/MainMenu.tsx",
-    "frontend/src/pages/StatsPage.tsx",
+    "frontend/src/pages/LoginPage.tsx",
     "frontend/src/pages/TypingChallenge.tsx",
     "project_state.json"
   ]

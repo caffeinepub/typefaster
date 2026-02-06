@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix typing challenge copy issues, simplify the main menu header area, and show/persist detailed completion performance stats per session.
+**Goal:** Correct typed-word counting for empty/deleted input, and polish landing and results layouts while removing the Donate section.
 
 **Planned changes:**
-- Update TypingChallenge level paragraphs so each level text has an exact word count match (20/50/100/200/500) to prevent mismatch warnings.
-- Remove the “Main Menu” title and “Choose an option to continue” subtitle from the main menu page.
-- On typing session end (normal finish, early finish, or timeout), display: XP earned, accuracy %, WPM, correct words, mistyped words, and untyped words (only when > 0).
-- Persist these completion metrics into saved challenge sessions in the backend, send the fields from the frontend when saving, and update the Stats page session table to display them (hiding untyped words when stored as 0) while keeping leaderboard XP behavior intact.
+- Fix typed-word counting so it remains 0 until at least one non-whitespace character is present at level completion; ensure deleting all input returns the count to 0 and prevents progress/counters from advancing.
+- Update any UI counters, progress displays, and gating logic that rely on typed-word counts to use the corrected calculation.
+- Adjust landing page card layout on desktop so “Top Players” and “Get Started” cards match the combined height of two stacked small feature cards, while keeping mobile layout readable and non-overflowing.
+- Polish results layout so the WPM “not available (test duration < 60 secs)” text fits on a single line, and adjust surrounding stat tiles for consistent sizing/padding/alignment and responsive behavior.
+- Remove the “Donate here” footer/landing section (including donation account id) and ensure spacing remains intentional with no awkward gap.
 
-**User-visible outcome:** Players see corrected level texts, a cleaner main menu, detailed performance stats on completion, and those same metrics saved and visible for each session in the Stats page.
+**User-visible outcome:** The app shows accurate “Words typed”/progress when the input is empty or cleared, the landing and results pages look more balanced and professional across screen sizes, and the Donate section no longer appears.

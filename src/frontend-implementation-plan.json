@@ -1,78 +1,71 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Typing challenge text fixes and persisted completion metrics (frontend)",
+  "title": "Fix typed-word counting edge case, refine landing/results layouts, and remove Donate section",
   "requirements": [
     {
       "id": "REQ-6",
-      "summary": "Replace level paragraphs so each level text contains exactly the required number of words.",
+      "summary": "Correct typed-word counting so empty/fully-deleted input counts as 0 words and does not advance progress or gating.",
       "acceptanceCriteria": [
-        "In frontend/src/pages/TypingChallenge.tsx, each LEVELS[n].text split by spaces results in a word count exactly equal to LEVELS[n].wordCount for all 5 levels.",
-        "Completing a level with exactly the required word count no longer triggers any 'exceeded required words' warning due to text/wordCount mismatch."
+        "With an empty input (no characters typed), the on-screen “Words typed” count shows 0 (not 1).",
+        "If the user types characters and then deletes them so the input becomes empty again, the “Words typed” count returns to 0.",
+        "Clicking “Next Level” with an empty input does not record/reflect 1 typed word anywhere in the level’s progression or displayed counters.",
+        "Progress calculation does not advance when the input is empty (progress remains 0%)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/TypingChallenge.tsx",
           "operation": "modify",
-          "description": "Update LEVELS[*].text strings to new English paragraphs whose space-split word counts exactly match 20/50/100/200/500 respectively, ensuring single spaces only (no double spaces, no leading/trailing spaces) so the existing split(' ') logic matches LEVELS[*].wordCount."
+          "description": "Update typed-word parsing/counting to return 0 when userInput has no remaining non-whitespace characters; ensure progress %, exceeded-word detection, and the on-screen “Words typed” counter all use the corrected derived typed-words array/count (avoiding trim().split(' ') producing [''] for empty input)."
         }
       ]
     },
     {
       "id": "REQ-7",
-      "summary": "Remove the main menu heading and subheading from the Main Menu page.",
+      "summary": "Adjust landing page card sizing so “Top Players” and “Get Started” visually match the combined height of two small feature cards on desktop while staying responsive on mobile.",
       "acceptanceCriteria": [
-        "frontend/src/pages/MainMenu.tsx no longer renders the 'Main Menu' title text.",
-        "frontend/src/pages/MainMenu.tsx no longer renders the 'Choose an option to continue' subtitle text."
+        "On desktop (md and up), the “Top Players” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
+        "On desktop (md and up), the “Get Started” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
+        "Spacing, alignment, and card sizing look consistent across the section (no obviously mismatched card heights or awkward gaps).",
+        "On mobile/small screens, the layout remains readable and does not overflow horizontally."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/MainMenu.tsx",
+          "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Remove the top header section that renders the 'Main Menu' heading and 'Choose an option to continue' subheading while keeping the grid of navigation cards intact."
+          "description": "Restructure the landing cards layout and apply consistent desktop sizing rules (e.g., shared min-heights / grid alignment) so the “Top Players” and “Get Started” cards visually equal ~2x the small feature card height on md+ breakpoints, while maintaining a clean stacked layout on small screens. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-8",
-      "summary": "Show completion performance metrics (XP, accuracy, WPM, correct/mistyped/untyped words) when the typing session ends for any reason.",
+      "summary": "Polish results stat tiles so the WPM fallback text stays on one line and the stat boxes remain consistent and responsive.",
       "acceptanceCriteria": [
-        "The TypingChallenge completion screen shows XP earned and the listed performance metrics.",
-        "Untyped words is not displayed when its value is 0.",
-        "WPM is displayed as a numeric value derived from the session duration."
+        "When the test duration is under 60 seconds, the WPM value text “not available (test duration < 60 secs)” renders on a single line (no wrapping).",
+        "The results stat cards/tiles remain visually consistent (padding, alignment, and sizing) after resizing the WPM tile.",
+        "The results layout remains responsive and does not overflow on small screens."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/TypingChallenge.tsx",
           "operation": "modify",
-          "description": "Compute and store per-session completion metrics at the time the session ends (finished normally, finished early, or timeout): accuracyPercent, wpm, correctWords, mistypedWords, untypedWords, and xpEarned. Update the completion UI (the isComplete view) to display XP earned, accuracy percentage, WPM, correct words, mistyped words, and conditionally display untyped words only when > 0. Derive WPM from elapsed seconds (TOTAL_TIME_LIMIT - timeRemaining) and handle divide-by-zero safely."
+          "description": "Adjust the post-completion stats grid/tile styling so the WPM value uses non-wrapping text behavior and the stat tiles keep consistent padding/alignment/sizing across breakpoints (including small screens). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-9",
-      "summary": "Send and display persisted session metrics alongside XP in the Stats sessions table (frontend wiring to backend interface).",
+      "summary": "Remove the “Donate here” section from the landing/footer area and ensure spacing remains intentional.",
       "acceptanceCriteria": [
-        "backend/main.mo ChallengeSession data includes fields for xpEarned plus the new metrics (accuracyPercent, wpm, correctWords, mistypedWords, untypedWords) and saveChallengeSession stores them per session.",
-        "frontend save session mutation sends all required fields needed by the backend to store these metrics.",
-        "frontend/src/pages/StatsPage.tsx displays each session entry with XP and the new metrics, and does not show untyped words when the stored value is 0.",
-        "Existing leaderboard behavior based on best session XP continues to work using xpEarned."
+        "The UI no longer shows any “Donate here:” text anywhere in the footer/landing page area.",
+        "No donation account id is displayed in the UI.",
+        "The rest of the landing page spacing looks intentional after removal (no large empty gap where the section was)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Update useSaveChallengeSession to accept and send a ChallengeMetrics object (xpEarned, accuracyPercent, wpm, correctWords, mistypedWords, untypedWords) to the backend saveChallengeSession call, aligning the mutation signature and callsite expectations with frontend/src/backend.d.ts."
-        },
-        {
-          "path": "frontend/src/pages/TypingChallenge.tsx",
-          "operation": "modify",
-          "description": "Update the session-save call to use the updated useSaveChallengeSession mutation by passing the full ChallengeMetrics payload (including xpEarned and computed metrics) so the backend can persist completion stats per session."
-        },
-        {
-          "path": "frontend/src/pages/StatsPage.tsx",
-          "operation": "modify",
-          "description": "Update StatsPage to read session metrics from the saved session structure (using session.metrics.* as defined in frontend/src/backend.d.ts), update total/average XP calculations accordingly, and expand the Challenge History table to include XP plus accuracy %, WPM, correct words, mistyped words, and conditionally untyped words (omit/hide when 0)."
+          "description": "Remove the landing-page donation UI block (“Donate here:” and account id), and clean up any related state/effects/imports so no donation account id is derived or rendered; ensure surrounding spacing/borders still look deliberate."
         }
       ]
     }

@@ -6,7 +6,7 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
 import Iter "mo:core/Iter";
-import Migration "migration";
+
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
@@ -15,7 +15,7 @@ import AccessControl "authorization/access-control";
 // This is opt-in and only needs to be specified on legacy systems;
 // new actors are migrated by simply adding the new actor into `main.mo`
 // and removing obsolete bits.
-(with migration = Migration.run)
+
 actor {
   type UserProfile = {
     username : Text;
@@ -62,6 +62,7 @@ actor {
   include MixinAuthorization(accessControlState);
 
   public query func getLeaderboard() : async [(Text, Int)] {
+    // Public leaderboard - accessible to everyone including guests
     let profiles = userProfiles.toArray();
     let leaderboardData = profiles.map(
       func(p, profile) {
@@ -102,10 +103,8 @@ actor {
     canisterAccountId;
   };
 
-  public query ({ caller }) func getCompetitionState() : async Bool {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view competition state");
-    };
+  public query func getCompetitionState() : async Bool {
+    // Public competition state - accessible to everyone including guests
     competitionActive;
   };
 
