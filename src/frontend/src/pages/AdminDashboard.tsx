@@ -1,88 +1,96 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
-  useGetCompetitionState,
-  useSetCompetitionState,
   useIsCallerAdmin,
-  useGetAppCanisterBalance,
+  useSetCompetitionState,
+  useGetCompetitionState,
   useGetTransactionHistory,
+  useGetUniqueVisitorsToday,
+  useGetTotalVisitsToday,
+  useGetTotalVisitors,
+  useGetUsers,
+  useGetAppCanisterBalance,
 } from '../hooks/useQueries';
-import { getAppCanisterPrincipalString, getAppCanisterAccountIdString } from '../config/appIdentity';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertCircle, Crown, Home, Coins, History, Copy, Check } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { Home, Shield, Trophy, Wallet, Send, AlertTriangle, Users, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import { APP_PRINCIPAL, APP_ACCOUNT_ID } from '../config/appIdentity';
 import SendICPPrizeModal from '../components/SendICPPrizeModal';
 
-interface AdminDashboardProps {
-  onReturn: () => void;
-}
-
-export default function AdminDashboard({ onReturn }: AdminDashboardProps) {
-  const [sendPrizeModalOpen, setSendPrizeModalOpen] = useState(false);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [appPrincipalString, setAppPrincipalString] = useState<string>('Loading...');
-  const [appAccountIdString, setAppAccountIdString] = useState<string>('Loading...');
-  
-  const { data: competitionActive, isLoading: stateLoading } = useGetCompetitionState();
-  const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
-  const { data: appBalance, isLoading: balanceLoading } = useGetAppCanisterBalance();
-  const { data: transactionHistory, isLoading: historyLoading } = useGetTransactionHistory();
+export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const { data: isAdmin, isLoading: adminCheckLoading } = useIsCallerAdmin();
+  const { data: competitionActive, isLoading: competitionLoading } = useGetCompetitionState();
   const setCompetitionState = useSetCompetitionState();
+  const { data: transactions, isLoading: transactionsLoading } = useGetTransactionHistory();
+  const { data: uniqueVisitorsToday } = useGetUniqueVisitorsToday();
+  const { data: totalVisitsToday } = useGetTotalVisitsToday();
+  const { data: totalVisitors } = useGetTotalVisitors();
+  const { data: appBalance } = useGetAppCanisterBalance();
+  const getUsersMutation = useGetUsers();
 
-  // Load app identity from frontend config on mount
+  const [showSendPrizeModal, setShowSendPrizeModal] = useState(false);
+  const [usersPage, setUsersPage] = useState(0);
+  const [usersData, setUsersData] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Load users when component mounts or page changes
   useEffect(() => {
-    const principal = getAppCanisterPrincipalString();
-    setAppPrincipalString(principal);
+    loadUsers(usersPage);
+  }, [usersPage]);
 
-    getAppCanisterAccountIdString().then((accountId) => {
-      setAppAccountIdString(accountId);
-    });
-  }, []);
+  const loadUsers = async (page: number) => {
+    setUsersLoading(true);
+    try {
+      const result = await getUsersMutation.mutateAsync(page);
+      setUsersData(result);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
-  const handleToggle = async (checked: boolean) => {
+  const handleCompetitionToggle = async (checked: boolean) => {
     try {
       await setCompetitionState.mutateAsync(checked);
-      toast.success(checked ? 'Competition started!' : 'Competition stopped!');
-    } catch (error) {
-      console.error('Failed to update competition state:', error);
-      toast.error('Failed to update competition state');
+      toast.success(checked ? 'Competition activated!' : 'Competition deactivated');
+    } catch (error: any) {
+      console.error('Failed to toggle competition:', error);
+      toast.error('Failed to update competition state: ' + (error?.message || 'Unknown error'));
     }
   };
 
-  const formatICP = (amount: bigint): string => {
-    const e8s = Number(amount);
-    return (e8s / 100_000_000).toFixed(8);
+  const handlePageChange = (newPage: number) => {
+    setUsersPage(newPage);
   };
 
-  const formatTimestamp = (timestamp: bigint): string => {
-    const date = new Date(Number(timestamp) / 1_000_000);
-    return date.toLocaleString();
-  };
-
-  const handleCopy = async (text: string, field: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedField(field);
-      toast.success('Copied to clipboard!');
-      setTimeout(() => setCopiedField(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-      toast.error('Failed to copy to clipboard');
-    }
-  };
-
-  if (adminLoading) {
+  if (adminCheckLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Verifying permissions...</p>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-muted-foreground">Checking admin permissions...</p>
         </div>
       </div>
     );
@@ -90,261 +98,291 @@ export default function AdminDashboard({ onReturn }: AdminDashboardProps) {
 
   if (!isAdmin) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-destructive" />
-          <div>
-            <h1 className="text-3xl font-bold">Access Denied</h1>
-            <p className="text-muted-foreground">You do not have admin privileges</p>
-          </div>
-        </div>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Only the app owner can access the admin dashboard. The first user to create a profile after deployment
-            automatically becomes the owner and admin.
-          </AlertDescription>
-        </Alert>
-
-        <div className="flex justify-center pt-4">
-          <Button onClick={onReturn} variant="outline" size="lg" className="gap-2">
-            <Home className="w-4 h-4" />
-            Return to Menu
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <div className="flex items-center gap-2 text-destructive">
+              <Shield className="h-6 w-6" />
+              <CardTitle>Access Denied</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">You do not have permission to access the admin dashboard.</p>
+            <Button onClick={() => navigate({ to: '/menu' })} className="w-full gap-2">
+              <Home className="h-4 w-4" />
+              Return to Menu
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Crown className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage daily competitions and rewards</p>
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Shield className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage competitions and prizes</p>
+          </div>
         </div>
+        <Button onClick={() => navigate({ to: '/menu' })} variant="outline" className="gap-2">
+          <Home className="h-4 w-4" />
+          Back to Menu
+        </Button>
       </div>
 
-      <Alert>
-        <Shield className="h-4 w-4" />
-        <AlertDescription>
-          You are the app owner with full admin privileges. You were the first user to create a profile after
-          deployment.
-        </AlertDescription>
-      </Alert>
-
+      {/* App Identity Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5" />
+            <Wallet className="h-5 w-5" />
             App Canister Identity
           </CardTitle>
-          <CardDescription>The app's canister ID from deployment configuration</CardDescription>
+          <CardDescription>Backend canister principal and account identifier</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Canister Principal ID:</Label>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <code className="flex-1 text-xs break-all">{appPrincipalString}</code>
-                {appPrincipalString !== 'Not available' && appPrincipalString !== 'Loading...' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopy(appPrincipalString, 'principal')}
-                    className="shrink-0"
-                  >
-                    {copiedField === 'principal' ? (
-                      <Check className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Canister Account ID:</Label>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <code className="flex-1 text-xs break-all font-mono">{appAccountIdString}</code>
-                {appAccountIdString !== 'Not available' && appAccountIdString !== 'Loading...' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopy(appAccountIdString, 'account')}
-                    className="shrink-0"
-                  >
-                    {copiedField === 'account' ? (
-                      <Check className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
+          <div className="space-y-2">
+            <Label>Principal ID</Label>
+            <div className="p-3 bg-muted rounded-lg font-mono text-sm break-all">{APP_PRINCIPAL}</div>
           </div>
-
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              This canister identity is read from deployment configuration and the account ID is derived client-side. Use this for ICP prize distribution and ledger operations.
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-2">
+            <Label>Account ID</Label>
+            <div className="p-3 bg-muted rounded-lg font-mono text-sm break-all">{APP_ACCOUNT_ID}</div>
+          </div>
+          <div className="space-y-2">
+            <Label>ICP Balance</Label>
+            <div className="p-3 bg-muted rounded-lg font-mono text-sm">
+              {appBalance ? (Number(appBalance) / 100_000_000).toFixed(8) : '0.00000000'} ICP
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Note: ICP balance and transfers are currently stubbed pending backend implementation
+            </p>
+          </div>
         </CardContent>
       </Card>
 
+      {/* Website Visitors Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="w-5 h-5" />
-            App Canister Balance
+            <Eye className="h-5 w-5" />
+            Website Visitors
           </CardTitle>
-          <CardDescription>Current ICP balance available for prize distribution</CardDescription>
+          <CardDescription>Landing page visitor analytics</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-3xl font-bold">
-                {balanceLoading ? 'Loading...' : `${formatICP(appBalance || BigInt(0))} ICP`}
-              </p>
-              <p className="text-sm text-muted-foreground">Available for distribution</p>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Unique visitors today (unique as in different IPs)</p>
+              <p className="text-2xl font-bold">{uniqueVisitorsToday ? Number(uniqueVisitorsToday) : 0}</p>
+            </div>
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Total visitors today</p>
+              <p className="text-2xl font-bold">{totalVisitsToday ? Number(totalVisitsToday) : 0}</p>
+            </div>
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Total visitors</p>
+              <p className="text-2xl font-bold">{totalVisitors ? Number(totalVisitors) : 0}</p>
             </div>
           </div>
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              ICP ledger integration is pending backend implementation. Balance and prize distribution will be functional once backend methods are deployed.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
 
+      {/* Users Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Send ICP Prize</CardTitle>
-          <CardDescription>Distribute ICP rewards to users from the app canister</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Users
+          </CardTitle>
+          <CardDescription>Registered user profiles</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Transfer ICP from the app canister to any user account ID for manual reward distribution.
-          </p>
-          <Button onClick={() => setSendPrizeModalOpen(true)} className="gap-2">
-            <Coins className="w-4 h-4" />
+          {usersLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading users...</div>
+          ) : usersData.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No users registered yet</div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Principal ID</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {usersData.map((user) => (
+                    <TableRow key={user.principal.toString()}>
+                      <TableCell className="font-medium">{user.username}</TableCell>
+                      <TableCell className="font-mono text-xs">{user.principal.toString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {usersData.length > 2 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => usersPage > 0 && handlePageChange(usersPage - 1)}
+                        className={usersPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink>{usersPage + 1}</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => usersData.length === 20 && handlePageChange(usersPage + 1)}
+                        className={usersData.length < 20 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Send ICP Prize Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5" />
             Send ICP Prize
+          </CardTitle>
+          <CardDescription>Transfer ICP from app canister to winners</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setShowSendPrizeModal(true)} className="gap-2">
+            <Send className="h-4 w-4" />
+            Send Prize
           </Button>
         </CardContent>
       </Card>
 
-      {transactionHistory && transactionHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="w-5 h-5" />
-              Transaction History
-            </CardTitle>
-            <CardDescription>Recent ICP prize distributions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {historyLoading ? (
-                <p className="text-sm text-muted-foreground">Loading transactions...</p>
-              ) : (
-                transactionHistory.slice(0, 5).map((tx, index) => (
-                  <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">To: {tx.to.substring(0, 20)}...</p>
-                      <p className="text-xs text-muted-foreground">{formatTimestamp(tx.timestamp)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold">{formatICP(tx.amount)} ICP</p>
-                      <p className="text-xs text-green-500">{tx.status}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
+      {/* Competition Controls Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Daily Competition</CardTitle>
-          <CardDescription>
-            Control the daily typing competition. When active, users compete for daily rewards.
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5" />
+            Competition Controls
+          </CardTitle>
+          <CardDescription>Manage active competitions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="competition-toggle" className="text-base">
-                Competition Status
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+            <div className="space-y-1">
+              <Label htmlFor="competition-toggle" className="text-base font-semibold">
+                Competition Active
               </Label>
               <p className="text-sm text-muted-foreground">
-                {competitionActive ? 'Competition is currently active' : 'Competition is currently inactive'}
+                {competitionActive ? 'Players can compete for prizes' : 'Competition is currently inactive'}
               </p>
             </div>
             <Switch
               id="competition-toggle"
               checked={competitionActive || false}
-              onCheckedChange={handleToggle}
-              disabled={stateLoading || setCompetitionState.isPending}
+              onCheckedChange={handleCompetitionToggle}
+              disabled={competitionLoading || setCompetitionState.isPending}
             />
           </div>
 
           <Alert>
-            <AlertCircle className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Note: Automatic reward distribution at the end of each day is not yet implemented in the backend. The
-              competition state is tracked, but winners will need to be rewarded manually using the "Send ICP Prize"
-              feature.
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold">Note:</span>
+                <span>Admin users are automatically excluded from the leaderboard to ensure fair competition.</span>
+              </div>
             </AlertDescription>
           </Alert>
         </CardContent>
       </Card>
 
+      {/* Competition Rules Card */}
       <Card>
         <CardHeader>
           <CardTitle>Competition Rules</CardTitle>
-          <CardDescription>How the daily competition works</CardDescription>
+          <CardDescription>How winners are determined</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="flex items-start gap-2">
-            <span className="text-muted-foreground">•</span>
-            <p className="flex-1">When active, all challenge sessions count toward the daily leaderboard</p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-muted-foreground">•</span>
-            <p className="flex-1"><strong>The user with the highest individual session score wins</strong></p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-muted-foreground">•</span>
-            <p className="flex-1">Winner receives 1 ICP automatically at the end of the day</p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-muted-foreground">•</span>
-            <p className="flex-1">Competition resets daily at midnight UTC</p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-muted-foreground">•</span>
-            <p className="flex-1">Admin users are excluded from public leaderboards and competition rankings</p>
-          </div>
+        <CardContent>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>Players are ranked by their highest single session XP</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>Only non-admin users appear on the public leaderboard</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>Competition must be active for prizes to be awarded</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>Admins can send ICP prizes to winners manually using their Account IDs</span>
+            </li>
+          </ul>
         </CardContent>
       </Card>
 
-      <div className="flex justify-center pb-6">
-        <Button onClick={onReturn} variant="outline" size="lg" className="gap-2">
-          <Home className="w-4 h-4" />
-          Return to Menu
-        </Button>
-      </div>
+      {/* Transaction History Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaction History</CardTitle>
+          <CardDescription>Recent ICP prize transfers</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {transactionsLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading transactions...</div>
+          ) : !transactions || transactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No transactions yet</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>To</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{new Date(Number(tx.timestamp) / 1000000).toLocaleString()}</TableCell>
+                    <TableCell className="font-mono text-xs">{tx.to}</TableCell>
+                    <TableCell>{(Number(tx.amount) / 100000000).toFixed(8)} ICP</TableCell>
+                    <TableCell>
+                      <span
+                        className={
+                          tx.status === 'completed'
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-yellow-600 dark:text-yellow-400'
+                        }
+                      >
+                        {tx.status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
-      <SendICPPrizeModal
-        open={sendPrizeModalOpen}
-        onOpenChange={setSendPrizeModalOpen}
+      <SendICPPrizeModal 
+        open={showSendPrizeModal} 
+        onOpenChange={setShowSendPrizeModal}
         currentBalance={appBalance || BigInt(0)}
       />
     </div>

@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Correct typed-word counting for empty/deleted input, and polish landing and results layouts while removing the Donate section.
+**Goal:** Correct Typing Challenge final word-count results across the full 5-level run, improve landing page Top Players display with expand/collapse, and add Admin Dashboard sections for visitor analytics and user listing.
 
 **Planned changes:**
-- Fix typed-word counting so it remains 0 until at least one non-whitespace character is present at level completion; ensure deleting all input returns the count to 0 and prevents progress/counters from advancing.
-- Update any UI counters, progress displays, and gating logic that rely on typed-word counts to use the corrected calculation.
-- Adjust landing page card layout on desktop so “Top Players” and “Get Started” cards match the combined height of two stacked small feature cards, while keeping mobile layout readable and non-overflowing.
-- Polish results layout so the WPM “not available (test duration < 60 secs)” text fits on a single line, and adjust surrounding stat tiles for consistent sizing/padding/alignment and responsive behavior.
-- Remove the “Donate here” footer/landing section (including donation account id) and ensure spacing remains intentional with no awkward gap.
+- Fix final results word counting to aggregate correct/mistyped/typed/untyped totals across all 5 levels (including when levels are skipped via Next), based on ordered word-to-word comparison against each level’s paragraph.
+- Update landing page “Top Players” card to show only the top 3 scores by default, with a '^' toggle to expand/collapse the remaining players.
+- Add landing-page-only visit tracking: fetch IP via ipify, anonymize client-side, send to backend, and store data needed to compute unique visitors today, total visitors today, and total visitors.
+- Add Admin Dashboard “Website visitors” section displaying exactly: Unique visitors today, Total visitors today, Total visitors.
+- Add Admin Dashboard “Users” section listing registered user profile names; paginate at 20 users/page when total users > 2, with page navigation controls.
 
-**User-visible outcome:** The app shows accurate “Words typed”/progress when the input is empty or cleared, the landing and results pages look more balanced and professional across screen sizes, and the Donate section no longer appears.
+**User-visible outcome:** Players see accurate final word counts for the full run, the landing leaderboard initially shows only the top 3 with an expand/collapse toggle, and admins can view visitor metrics plus a paginated list of registered users in the Admin Dashboard.

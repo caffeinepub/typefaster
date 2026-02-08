@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T01:01:27.054Z",
+  "generatedAt": "2026-02-08T13:11:15.074Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,8 +11,8 @@
     "implemented": 4,
     "items": [
       {
-        "id": "REQ-6",
-        "summary": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
+        "id": "REQ-1",
+        "summary": "Fix the Typing Challenge final results word counting so that typed/correct/mistyped/untyped are computed across the entire 5-level run (including when the player clicks Next to skip levels), using the definitions: typedWords = correctWords + mistypedWords; correctWords counts words where the typed word exactly matches the corresponding level paragraph word in the same order; mistypedWords counts words that were typed but are not an exact match to the corresponding paragraph word in the same order; untypedWords = totalWordsAcrossAllLevels - (correctWords + mistypedWords). Ensure the final results no longer show 0 typed/mistyped when level 1 was typed then the user advanced to the end.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/TypingChallenge.tsx"
@@ -22,8 +22,8 @@
         ]
       },
       {
-        "id": "REQ-7",
-        "summary": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
+        "id": "REQ-2",
+        "summary": "On the landing page Top Players card (Login page), show only the top 3 scores by default. Add an expand/collapse control (a '^' toggle as requested) that expands the card to reveal the remaining players; collapsing returns to showing only the top 3.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/LoginPage.tsx"
@@ -33,36 +33,58 @@
         ]
       },
       {
-        "id": "REQ-8",
-        "summary": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
+        "id": "REQ-3",
+        "summary": "Add backend support and Admin Dashboard UI for a “Website visitors” section showing: “Unique visitors today (unique as in different IPs)”, “Total visitors today”, and “Total visitors”. Visitor identity must be derived from an anonymized version of the user’s IP fetched via ipify, and visits must be counted only when the landing page is loaded.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx"
+          "frontend/src/utils/visitorId.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/pages/AdminDashboard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx"
+          "frontend/src/utils/visitorId.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/pages/AdminDashboard.tsx"
         ]
       },
       {
-        "id": "REQ-9",
-        "summary": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
+        "id": "REQ-4",
+        "summary": "Add backend support and Admin Dashboard UI for a “Users” section that lists all registered users by their profile names. If there are more than 2 users, paginate the list with 20 users per page and provide page navigation controls.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/config/appIdentity.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboard.tsx",
     "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/StatsPage.tsx",
     "frontend/src/pages/TypingChallenge.tsx",
+    "frontend/src/pages/WalletPage.tsx",
+    "frontend/src/utils/visitorId.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

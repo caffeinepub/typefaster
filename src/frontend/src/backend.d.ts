@@ -49,10 +49,16 @@ export interface backendInterface {
     getCompetitionState(): Promise<boolean>;
     getFirstUserFlag(): Promise<Principal | null>;
     getLeaderboard(): Promise<Array<[string, bigint]>>;
+    getTotalUniqueVisitors(): Promise<bigint>;
+    getTotalVisitors(): Promise<bigint>;
+    getTotalVisitsToday(): Promise<bigint>;
     getTransactionHistory(): Promise<Array<ICPTransaction>>;
+    getUniqueVisitorsToday(): Promise<bigint>;
     getUserChallengeSessions(): Promise<Array<ChallengeSession>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getUsers(page: bigint): Promise<Array<UserProfile>>;
     isCallerAdmin(): Promise<boolean>;
+    recordVisitor(visitorId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveChallengeSession(metrics: ChallengeMetrics): Promise<void>;
     setCanisterAccountId(accountId: string): Promise<void>;

@@ -38,6 +38,12 @@ interface LocalChallengeMetrics {
   untypedWords: number;
 }
 
+// Track per-level typed words
+interface LevelTypedWords {
+  levelIndex: number;
+  typedWords: string[];
+}
+
 const LEVELS = [
   {
     level: 1,
@@ -87,6 +93,9 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   // Track completion metrics (using local type with number)
   const [completionMetrics, setCompletionMetrics] = useState<LocalChallengeMetrics | null>(null);
   
+  // NEW: Track typed words for each level across the entire run
+  const [levelTypedWordsHistory, setLevelTypedWordsHistory] = useState<LevelTypedWords[]>([]);
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const saveChallengeSession = useSaveChallengeSession();
 
@@ -130,21 +139,83 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     }
   }, [hasExceededWords]);
 
-  const calculateMetrics = (): LocalChallengeMetrics => {
-    let correctWords = 0;
-    let mistypedWords = 0;
+  // NEW: Calculate cumulative metrics across all levels
+  const calculateCumulativeMetrics = (): LocalChallengeMetrics => {
+    let totalCorrectWords = 0;
+    let totalMistypedWords = 0;
     let totalXP = 0;
     
+    // Process all completed levels from history
+    levelTypedWordsHistory.forEach((levelHistory) => {
+      const levelData = LEVELS[levelHistory.levelIndex];
+      const levelWords = levelData.text.split(' ');
+      
+      levelHistory.typedWords.forEach((typedWord, index) => {
+        if (index < levelWords.length) {
+          if (typedWord === levelWords[index]) {
+            totalCorrectWords++;
+            totalXP += 5;
+          } else {
+            totalMistypedWords++;
+            totalXP -= 10;
+          }
+        }
+      });
+    });
+    
+    // Process current level's input
+    const currentTypedWords = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
+    currentTypedWords.forEach((typedWord, index) => {
+      if (index < words.length) {
+        if (typedWord === words[index]) {
+          totalCorrectWords++;
+          totalXP += 5;
+        } else {
+          totalMistypedWords++;
+          totalXP -= 10;
+        }
+      }
+    });
+
+    // Calculate total typed words
+    const totalTypedWords = totalCorrectWords + totalMistypedWords;
+    
+    // Count untyped words: total words in all levels minus words user actually typed
+    const totalWordsInAllLevels = LEVELS.reduce((sum, level) => sum + level.text.split(' ').length, 0);
+    const untypedWords = Math.max(0, totalWordsInAllLevels - totalTypedWords);
+
+    // Calculate accuracy
+    const accuracyPercent = totalTypedWords > 0 ? (totalCorrectWords / totalTypedWords) * 100 : 0;
+
+    // Calculate WPM
+    const elapsedSeconds = TOTAL_TIME_LIMIT - timeRemaining;
+    let wpm = 0;
+    
+    if (elapsedSeconds >= 60) {
+      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+      wpm = Math.floor(totalCorrectWords / elapsedMinutes);
+    }
+
+    return {
+      xpEarned: totalXP,
+      accuracyPercent,
+      wpm,
+      correctWords: totalCorrectWords,
+      mistypedWords: totalMistypedWords,
+      untypedWords,
+    };
+  };
+
+  const calculateXP = () => {
+    let totalXP = 0;
     // Fix: Properly filter typed words to exclude empty strings
     const typedWordsArray = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
 
     typedWordsArray.forEach((typedWord, index) => {
       if (index < words.length) {
         if (typedWord === words[index]) {
-          correctWords++;
           totalXP += 5;
         } else {
-          mistypedWords++;
           totalXP -= 10;
           if (!hasMistype) {
             setHasMistype(true);
@@ -153,36 +224,18 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
       }
     });
 
-    // Count untyped words: total words in all levels minus words user actually typed
-    const totalWordsInAllLevels = LEVELS.reduce((sum, level) => sum + level.text.split(' ').length, 0);
-    const untypedWords = Math.max(0, totalWordsInAllLevels - typedWordsArray.length);
-
-    // Calculate accuracy
-    const totalWordsAttempted = correctWords + mistypedWords;
-    const accuracyPercent = totalWordsAttempted > 0 ? (correctWords / totalWordsAttempted) * 100 : 0;
-
-    // Calculate WPM
-    const elapsedSeconds = TOTAL_TIME_LIMIT - timeRemaining;
-    let wpm = 0;
-    
-    if (elapsedSeconds >= 60) {
-      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-      wpm = Math.floor(correctWords / elapsedMinutes);
-    }
-
-    return {
-      xpEarned: totalXP,
-      accuracyPercent,
-      wpm,
-      correctWords,
-      mistypedWords,
-      untypedWords,
-    };
+    return totalXP;
   };
 
   const handleTimeUp = async () => {
-    const metrics = calculateMetrics();
-    const levelXP = metrics.xpEarned;
+    // Save current level's typed words before calculating
+    const currentTypedWords = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
+    const updatedHistory = [...levelTypedWordsHistory, { levelIndex: currentLevel, typedWords: currentTypedWords }];
+    setLevelTypedWordsHistory(updatedHistory);
+    
+    // Calculate cumulative metrics
+    const metrics = calculateCumulativeMetrics();
+    const levelXP = calculateXP();
     const finalXP = xp + levelXP;
     
     // Timeout means incomplete, so no time bonus
@@ -209,31 +262,16 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     setHasSkippedLevel(false);
     setHasSkippedWord(false);
     setCompletionMetrics(null);
+    setLevelTypedWordsHistory([]);
     inputRef.current?.focus();
   };
 
-  const calculateXP = () => {
-    let totalXP = 0;
-    // Fix: Properly filter typed words to exclude empty strings
-    const typedWordsArray = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
-
-    typedWordsArray.forEach((typedWord, index) => {
-      if (index < words.length) {
-        if (typedWord === words[index]) {
-          totalXP += 5;
-        } else {
-          totalXP -= 10;
-          if (!hasMistype) {
-            setHasMistype(true);
-          }
-        }
-      }
-    });
-
-    return totalXP;
-  };
-
   const handleLevelComplete = () => {
+    // Save current level's typed words to history
+    const currentTypedWords = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
+    const updatedHistory = [...levelTypedWordsHistory, { levelIndex: currentLevel, typedWords: currentTypedWords }];
+    setLevelTypedWordsHistory(updatedHistory);
+    
     const levelXP = calculateXP();
     const newTotalXP = xp + levelXP;
     setXp(newTotalXP);
@@ -245,7 +283,9 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     } else {
       // Completed all 5 levels naturally
       setCompletionReason('finished');
-      const metrics = calculateMetrics();
+      
+      // Calculate cumulative metrics using the updated history
+      const metrics = calculateCumulativeMetrics();
       
       // Calculate time bonus
       let timeBonus = 0;
@@ -290,13 +330,17 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   };
 
   const handleFinish = async () => {
-    const metrics = calculateMetrics();
-    const levelXP = metrics.xpEarned;
+    // Save current level's typed words before calculating
+    const currentTypedWords = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
+    const updatedHistory = [...levelTypedWordsHistory, { levelIndex: currentLevel, typedWords: currentTypedWords }];
+    setLevelTypedWordsHistory(updatedHistory);
+    
+    const metrics = calculateCumulativeMetrics();
+    const levelXP = calculateXP();
     const finalXP = xp + levelXP;
     
     // Check if we completed all words in the current level
-    const typedWordsArray = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
-    const allWordsTyped = typedWordsArray.length >= words.length;
+    const allWordsTyped = currentTypedWords.length >= words.length;
     
     // If not all words typed or not on last level, mark as skipped
     if (!allWordsTyped || currentLevel < LEVELS.length - 1) {
@@ -317,6 +361,11 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
   };
 
   const confirmSkipLevel = () => {
+    // Save current level's typed words to history before skipping
+    const currentTypedWords = userInput.trim() === '' ? [] : userInput.trim().split(' ').filter(w => w !== '');
+    const updatedHistory = [...levelTypedWordsHistory, { levelIndex: currentLevel, typedWords: currentTypedWords }];
+    setLevelTypedWordsHistory(updatedHistory);
+    
     const levelXP = calculateXP();
     const newTotalXP = xp + levelXP;
     setXp(newTotalXP);
@@ -399,7 +448,9 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold">Typing Challenge</h2>
-          <p className="text-muted-foreground">5 levels, 10 minutes, earn XP for accuracy</p>
+          <p className="text-muted-foreground">
+            Test your typing speed and accuracy across 5 progressive levels
+          </p>
         </div>
 
         <Card>
@@ -408,42 +459,56 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
             <CardDescription>Read carefully before starting</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert className="flex items-start gap-3">
-              <Target className="h-4 w-4 mt-0.5 shrink-0" />
-              <AlertDescription className="flex-1">
-                <strong>Scoring:</strong> +5 XP per correct word, -10 XP per incorrect word. Untyped words = 0 XP.
-              </AlertDescription>
-            </Alert>
-            <Alert className="flex items-start gap-3">
-              <Clock className="h-4 w-4 mt-0.5 shrink-0" />
-              <AlertDescription className="flex-1">
-                <strong>Time Limit:</strong> 10 minutes total for all 5 levels. Challenge ends automatically when time runs out.
-              </AlertDescription>
-            </Alert>
-            <Alert className="flex items-start gap-3">
-              <Zap className="h-4 w-4 mt-0.5 shrink-0" />
-              <AlertDescription className="flex-1">
-                <strong>Time Bonus:</strong> Complete all 5 levels perfectly (no mistypes, no skips) to earn +5 XP per remaining second!
-              </AlertDescription>
-            </Alert>
-            <Alert className="flex items-start gap-3">
-              <Trophy className="h-4 w-4 mt-0.5 shrink-0" />
-              <AlertDescription className="flex-1">
-                <strong>Levels:</strong> Progress through 20, 50, 100, 200, and 500-word challenges. You can finish early on Level 5.
-              </AlertDescription>
-            </Alert>
-            <div className="pt-4">
-              <Button onClick={handleStart} size="lg" className="w-full">
-                Start Challenge
-              </Button>
+            <div className="space-y-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Objective
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Type the displayed text as accurately as possible. Progress through 5 levels of increasing difficulty.
+              </p>
             </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Scoring
+              </h3>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Correct word: +5 XP</li>
+                <li>Incorrect word: -10 XP</li>
+                <li>Perfect run bonus: +5 XP per second remaining</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Time Limit
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                You have 10 minutes total to complete all 5 levels. Time bonus only applies if you complete all levels
+                without mistakes or skips.
+              </p>
+            </div>
+
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Anti-cheat measures are active. Pasting, drag-and-drop, and right-click are disabled.
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
+          <Button onClick={handleStart} size="lg" className="gap-2">
+            <Trophy className="h-5 w-5" />
+            Start Challenge
+          </Button>
           <Button onClick={onReturn} variant="outline" size="lg" className="gap-2">
-            <Home className="w-4 h-4" />
-            Return to Menu
+            <Home className="h-5 w-5" />
+            Back to Menu
           </Button>
         </div>
       </div>
@@ -454,158 +519,180 @@ export default function TypingChallenge({ onReturn }: TypingChallengeProps) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center space-y-2">
-          <Trophy className="w-16 h-16 mx-auto text-chart-1" />
-          <h2 className="text-3xl font-bold">Challenge Complete!</h2>
+          <h2 className="text-3xl font-bold flex items-center justify-center gap-2">
+            <CheckCircle className="h-8 w-8 text-green-500" />
+            Challenge Complete!
+          </h2>
           <p className="text-muted-foreground">{getCompletionMessage()}</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Final Score</CardTitle>
-            <CardDescription>Your performance summary</CardDescription>
+            <CardTitle>Your Results</CardTitle>
+            <CardDescription>Performance summary</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center py-8">
-              <p className="text-5xl font-bold text-primary">{completionMetrics.xpEarned} XP</p>
-              <p className="text-muted-foreground mt-2">Total XP Earned</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-bold">{completionMetrics.accuracyPercent.toFixed(1)}%</p>
-                <p className="text-sm text-muted-foreground">Accuracy</p>
-              </div>
-              <div className="p-4 bg-muted/50 rounded-lg text-center">
-                <p className="text-lg sm:text-2xl font-bold whitespace-nowrap">{getWPMDisplay(completionMetrics)}</p>
-                <p className="text-sm text-muted-foreground">Words Per Minute</p>
-              </div>
-              <div className="p-4 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-bold">{completionMetrics.correctWords}</p>
-                <p className="text-sm text-muted-foreground">Correct Words</p>
-              </div>
-              <div className="p-4 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-bold">{completionMetrics.mistypedWords}</p>
-                <p className="text-sm text-muted-foreground">Mistyped Words</p>
-              </div>
-              {completionMetrics.untypedWords > 0 && (
-                <div className="p-4 bg-muted/50 rounded-lg text-center sm:col-span-2">
-                  <p className="text-2xl font-bold">{completionMetrics.untypedWords}</p>
-                  <p className="text-sm text-muted-foreground">Untyped Words</p>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg">
+                  <span className="font-semibold">Total XP Earned</span>
+                  <span className="text-2xl font-bold text-primary">{completionMetrics.xpEarned}</span>
                 </div>
-              )}
+
+                <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
+                  <span className="font-semibold">Accuracy</span>
+                  <span className="text-xl font-bold">{completionMetrics.accuracyPercent.toFixed(1)}%</span>
+                </div>
+
+                <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
+                  <span className="font-semibold whitespace-nowrap">Words Per Minute</span>
+                  <span className="text-xl font-bold whitespace-nowrap">{getWPMDisplay(completionMetrics)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 bg-green-500/10 rounded-lg">
+                  <span className="font-semibold">Correct Words</span>
+                  <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {completionMetrics.correctWords}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-4 bg-red-500/10 rounded-lg">
+                  <span className="font-semibold">Mistyped Words</span>
+                  <span className="text-xl font-bold text-red-600 dark:text-red-400">
+                    {completionMetrics.mistypedWords}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
+                  <span className="font-semibold">Untyped Words</span>
+                  <span className="text-xl font-bold">{completionMetrics.untypedWords}</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex justify-center">
-          <Button onClick={onReturn} size="lg" className="gap-2">
-            <Home className="w-4 h-4" />
-            Return to Menu
+        <div className="flex justify-center gap-4">
+          <Button onClick={handleStart} size="lg" className="gap-2">
+            <Trophy className="h-5 w-5" />
+            Try Again
+          </Button>
+          <Button onClick={onReturn} variant="outline" size="lg" className="gap-2">
+            <Home className="h-5 w-5" />
+            Back to Menu
           </Button>
         </div>
       </div>
     );
   }
 
-  const isLastLevel = currentLevel === LEVELS.length - 1;
-
   return (
-    <TooltipProvider>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Level {currentLevel + 1} of {LEVELS.length}</h2>
-            <p className="text-muted-foreground">{currentLevelData.wordCount} words</p>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold">Level {currentLevel + 1} of {LEVELS.length}</h2>
+          <p className="text-sm text-muted-foreground">
+            Type at least {requiredWords} words to proceed
+          </p>
+        </div>
+        <div className="text-right space-y-1">
+          <div className="flex items-center gap-2 justify-end">
+            <Clock className="h-5 w-5" />
+            <span className="text-2xl font-bold">{formatTime(timeRemaining)}</span>
           </div>
-          <div className="text-right">
-            <div className="flex items-center gap-2 text-2xl font-bold">
-              <Clock className="w-6 h-6" />
-              {formatTime(timeRemaining)}
-            </div>
-            <p className="text-sm text-muted-foreground">Current XP: {xp}</p>
+          <div className="flex items-center gap-2 justify-end">
+            <Zap className="h-4 w-4" />
+            <span className="text-lg font-semibold">{xp} XP</span>
           </div>
         </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Type the following text:</CardTitle>
-            <Progress value={progress} className="mt-2" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <p className="text-lg leading-relaxed font-mono">{currentLevelData.text}</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Challenge Text</CardTitle>
+          <CardDescription>Type the text below as accurately as possible</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 bg-muted rounded-lg">
+            <p className="text-lg leading-relaxed font-mono">{currentLevelData.text}</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Progress: {typedWordsCount} / {requiredWords} words</span>
+              <span>{progress.toFixed(0)}%</span>
             </div>
-            <div>
-              <Input
-                ref={inputRef}
-                value={userInput}
-                onChange={handleInputChange}
-                onPaste={handlePaste}
-                onDrop={handleDrop}
-                onContextMenu={handleContextMenu}
-                placeholder="Start typing here..."
-                className="text-lg font-mono"
-                autoFocus
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
+            <Progress value={progress} className="h-2" />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Your Input</label>
+            <TooltipProvider>
               <Tooltip open={showExceededTooltip}>
                 <TooltipTrigger asChild>
-                  <span className={`flex items-center gap-2 ${hasExceededWords ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-                    {hasExceededWords && <AlertTriangle className="w-4 h-4" />}
-                    Words typed: {typedWordsCount} / {requiredWords}
-                  </span>
+                  <Input
+                    ref={inputRef}
+                    value={userInput}
+                    onChange={handleInputChange}
+                    onPaste={handlePaste}
+                    onDrop={handleDrop}
+                    onContextMenu={handleContextMenu}
+                    placeholder="Start typing here..."
+                    className="font-mono text-lg"
+                    autoFocus
+                  />
                 </TooltipTrigger>
-                <TooltipContent side="top" className="bg-destructive text-destructive-foreground">
-                  <p className="font-semibold">⚠️ Exceeded required words!</p>
-                  <p className="text-sm">You've typed more than {requiredWords} words.</p>
+                <TooltipContent side="bottom" className="bg-destructive text-destructive-foreground">
+                  <p>You've exceeded {requiredWords} words. Complete the level with exactly {requiredWords} words.</p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-muted-foreground">Progress: {Math.round(progress)}%</span>
-            </div>
-          </CardContent>
-        </Card>
+            </TooltipProvider>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-center gap-4">
-          {isLastLevel ? (
-            <Button
-              onClick={handleFinish}
-              variant="default"
-              size="lg"
-              className="gap-2"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Finish
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNextLevel}
-              variant="outline"
-              size="lg"
-              className="gap-2"
-            >
-              <SkipForward className="w-4 h-4" />
-              Next Level
-            </Button>
-          )}
+      <div className="flex justify-between gap-4">
+        <Button onClick={onReturn} variant="outline" className="gap-2">
+          <Home className="h-4 w-4" />
+          Exit
+        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleFinish} variant="secondary" className="gap-2">
+            Finish Now
+          </Button>
+          <Button onClick={handleNextLevel} className="gap-2">
+            {currentLevel < LEVELS.length - 1 ? (
+              <>
+                Next Level
+                <SkipForward className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Complete
+                <CheckCircle className="h-4 w-4" />
+              </>
+            )}
+          </Button>
         </div>
-
-        <AlertDialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Skip to Next Level?</AlertDialogTitle>
-              <AlertDialogDescription>
-                You haven't typed the required {requiredWords} words yet. Skipping will save your current progress but you'll miss out on potential XP. Note: Skipping disqualifies you from the time bonus.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmSkipLevel}>
-                Skip
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
-    </TooltipProvider>
+
+      <AlertDialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Skip to Next Level?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You haven't typed the required {requiredWords} words yet. Skipping will forfeit the time bonus and may
+              reduce your XP. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSkipLevel}>Skip Level</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

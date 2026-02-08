@@ -1,137 +1,218 @@
+import { useEffect, useState } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetPublicLeaderboard } from '../hooks/useQueries';
-import { Button } from '@/components/ui/button';
+import { useGetLeaderboard, useRecordVisitor } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Keyboard, Trophy, Zap, Medal, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Trophy, Zap, Target, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { getAnonymizedVisitorId } from '../utils/visitorId';
 
 export default function LoginPage() {
   const { login, loginStatus } = useInternetIdentity();
-  const { data: publicLeaderboard, isLoading: leaderboardLoading } = useGetPublicLeaderboard();
+  const { data: leaderboard, isLoading: leaderboardLoading } = useGetLeaderboard();
+  const recordVisitor = useRecordVisitor();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const isLoggingIn = loginStatus === 'logging-in';
 
-  const sortedLeaderboard = publicLeaderboard
-    ? [...publicLeaderboard].sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 10)
-    : [];
+  // Record visitor on landing page load
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        const visitorId = await getAnonymizedVisitorId();
+        await recordVisitor.mutateAsync(visitorId);
+      } catch (error) {
+        console.error('Failed to record visitor:', error);
+      }
+    };
+    
+    trackVisitor();
+  }, []);
 
-  const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Trophy className="w-4 h-4 text-yellow-500" />;
-    if (rank === 2) return <Medal className="w-4 h-4 text-gray-400" />;
-    if (rank === 3) return <Medal className="w-4 h-4 text-amber-600" />;
-    return <Award className="w-4 h-4 text-muted-foreground" />;
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error: any) {
+      console.error('Login error:', error);
+    }
   };
 
+  const topThree = leaderboard?.slice(0, 3) || [];
+  const remaining = leaderboard?.slice(3) || [];
+
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
-      <div className="w-full max-w-4xl space-y-8">
-        <div className="text-center space-y-4">
-          <img
-            src="/assets/generated/generated/hands-typing-gaming-keyboard-dark.dim_800x400.png"
-            alt="Hands typing on a gaming keyboard with RGB lighting"
-            className="w-full max-w-2xl mx-auto rounded-lg shadow-2xl"
-          />
-          <h1 className="text-5xl font-bold text-primary">
-            TypeFaster
-          </h1>
-          <p className="text-xl text-muted-foreground">Type faster, win ICP</p>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-1 container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto space-y-12">
+          {/* Hero Section */}
+          <div className="text-center space-y-6">
+            <div className="relative w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src="/assets/generated/typing-hero.dim_800x400.png"
+                alt="Typing Challenge Hero"
+                className="w-full h-auto"
+              />
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              TypeFaster
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Challenge yourself with progressive typing levels. Earn XP, compete on the leaderboard, and win ICP
+              prizes!
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <Keyboard className="w-8 h-8 text-chart-1 mb-2" />
-              <CardTitle className="text-lg">5 Levels</CardTitle>
-              <CardDescription>
-                Progress through increasingly challenging typing tests
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <Zap className="w-8 h-8 text-chart-2 mb-2" />
-              <CardTitle className="text-lg">Earn XP</CardTitle>
-              <CardDescription>
-                Gain points for accuracy and speed bonuses
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <Trophy className="w-8 h-8 text-chart-4 mb-2" />
-              <CardTitle className="text-lg">Win ICP</CardTitle>
-              <CardDescription>
-                Compete daily for cryptocurrency rewards
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="md:row-span-2 flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-chart-1" />
-                Top Players
-              </CardTitle>
-              <CardDescription>
-                See who's leading the competition
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-              {leaderboardLoading ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Loading leaderboard...</p>
-                </div>
-              ) : sortedLeaderboard.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No players yet—be the first to compete!</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {sortedLeaderboard.map(([username, xp], index) => (
-                    <div
-                      key={`${username}-${index}`}
-                      className={`flex items-center justify-between p-3 rounded-lg ${
-                        index < 3 ? 'bg-muted/50' : 'bg-muted/20'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 min-w-[60px]">
-                          {getRankIcon(index + 1)}
-                          <span className="font-bold text-sm">#{index + 1}</span>
-                        </div>
-                        <span className="font-medium">{username}</span>
-                      </div>
-                      <span className="font-bold text-primary">
-                        {Number(xp).toLocaleString()} XP
-                      </span>
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Small Feature Cards */}
+            <div className="space-y-6">
+              <Card className="h-full">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <img src="/assets/generated/trophy-icon.dim_64x64.png" alt="Trophy" className="w-8 h-8" />
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    <div>
+                      <CardTitle>Compete & Win</CardTitle>
+                      <CardDescription>Climb the leaderboard</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Earn XP by typing accurately and quickly. Top performers win ICP prizes in active competitions.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="md:row-span-2 flex flex-col">
-            <CardHeader>
-              <CardTitle>Get Started</CardTitle>
-              <CardDescription>
-                Login with Internet Identity to start your typing journey
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-center">
-              <Button
-                onClick={login}
-                disabled={isLoggingIn}
-                className="w-full"
-                size="lg"
-              >
-                {isLoggingIn ? 'Logging in...' : 'Login with Internet Identity'}
-              </Button>
-            </CardContent>
-          </Card>
+              <Card className="h-full">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <img src="/assets/generated/timer-icon.dim_64x64.png" alt="Timer" className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <CardTitle>Progressive Levels</CardTitle>
+                      <CardDescription>5 challenging stages</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Start easy and progress through increasingly difficult typing challenges. Beat the clock for bonus
+                    XP!
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Players Card - matches combined height */}
+            <Card className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="h-6 w-6 text-primary" />
+                    <div>
+                      <CardTitle>Top Players</CardTitle>
+                      <CardDescription>Global leaderboard</CardDescription>
+                    </div>
+                  </div>
+                  {remaining.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="gap-1"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="h-4 w-4" />
+                          Collapse
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-4 w-4" />
+                          Expand
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1">
+                {leaderboardLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading leaderboard...</div>
+                ) : topThree.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No players yet. Be the first to compete!
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {topThree.map(([username, xp], index) => (
+                      <div
+                        key={username}
+                        className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                          </span>
+                          <div>
+                            <p className="font-semibold">{username}</p>
+                            <p className="text-sm text-muted-foreground">Rank #{index + 1}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-primary">{Number(xp)} XP</p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {isExpanded && remaining.map(([username, xp], index) => (
+                      <div
+                        key={username}
+                        className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg text-muted-foreground">#{index + 4}</span>
+                          <div>
+                            <p className="font-semibold">{username}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-primary">{Number(xp)} XP</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Get Started Card - matches combined height */}
+            <Card className="flex flex-col md:col-span-2">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Zap className="h-6 w-6 text-primary" />
+                  <div>
+                    <CardTitle>Get Started</CardTitle>
+                    <CardDescription>Login with Internet Identity to begin</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-center items-center space-y-4">
+                <p className="text-center text-muted-foreground max-w-md">
+                  Secure, anonymous authentication powered by the Internet Computer. No passwords, no personal data
+                  required.
+                </p>
+                <Button onClick={handleLogin} disabled={isLoggingIn} size="lg" className="gap-2">
+                  <Target className="h-5 w-5" />
+                  {isLoggingIn ? 'Logging in...' : 'Login to Start'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

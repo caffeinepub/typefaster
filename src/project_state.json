@@ -1,334 +1,46 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 14,
-  "summary": "TypeFaster is a React + TypeScript (Vite) web dapp deployed on the Internet Computer with a Motoko backend canister. Users authenticate via Internet Identity, create a username profile, and play a 5-level timed typing challenge to earn XP. Completed sessions are stored in the canister and used to power personal stats/history and a global leaderboard (best single-session XP, excluding admins). The app also includes an admin-gated dashboard to toggle a competition flag and display canister identity metadata, plus wallet/prize UI flows for ICP that are present in the frontend but currently stubbed pending ICP ledger backend integration.",
+  "projectStateVersion": 3,
+  "summary": "Existing deployed draft app (version 57) is the canonical baseline. Requested changes: fix word counting logic/results; limit Top Players to top 3 with expandable list on landing page; add Admin dashboard analytics for website visitors (using ipify anonymized IP, tracked only on landing page); add Admin dashboard Users section with pagination (20 per page) when more than 2 users.",
   "architectural_notes": [
-    "Frontend uses React Query (@tanstack/react-query) as the primary async data/cache layer, with query keys commonly scoped by the authenticated principal string.",
-    "Authentication is implemented via an InternetIdentityProvider wrapping DFINITY AuthClient, with persisted identity loading on mount and a long-lived delegation TTL (30 days).",
-    "IC integration uses an “actor per identity” pattern: useActor creates an anonymous actor when logged out and an identity-bound actor when logged in.",
-    "Backend authorization is enforced in Motoko via an AccessControl module and a MixinAuthorization mixin, using role checks (#admin/#user/#guest) at method boundaries.",
-    "Admin bootstrap uses an environment variable (CAFFEINE_ADMIN_TOKEN) combined with a client-provided secret read from the URL hash/session storage.",
-    "UI is built with TailwindCSS and shadcn-style components (cards, dialogs, tooltips, switches), with lucide-react icons and sonner toasts.",
-    "Navigation is implemented as a simple in-app page state machine (menu/challenge/stats/wallet/leaderboard/admin) rather than a router library.",
-    "Client derives ICP ledger-style account identifiers from Principals using Web Crypto (SHA-256 truncated to SHA-224) plus CRC32 checksum."
+    "Use deployed version 57 as canonical baseline for changes.",
+    "Visitor tracking counted only on landing page.",
+    "Use ipify to fetch an anonymized IP identifier for unique-visitor counting."
   ],
   "known_issues": [
-    "ICP ledger integration is not implemented: useGetAppCanisterBalance returns a mock 0 balance; useSendICPPrize and useWithdrawICP throw errors; backend has no corresponding ledger transfer/balance methods.",
-    "Backend transactionHistory is never populated (no methods append transactions), so the Admin Dashboard transaction list will stay empty.",
-    "Authorization bootstrap canister method _initializeAccessControlWithSecret traps if CAFFEINE_ADMIN_TOKEN is not set, which can break authenticated actor initialization.",
-    "AccessControl admin assignment depends on the correct secret token being provided; this conflicts with UI messaging that “the first user to create a profile becomes owner/admin.”",
-    "Backend createProfile sets UserProfile.isAdmin based on firstUserFlag but does not synchronize AccessControl roles, potentially causing UI/admin gating inconsistencies.",
-    "TypingChallenge uses words.length (text word count) for auto level completion, but uses level.wordCount (requiredWords) for Next Level gating; if these diverge, UX can become inconsistent or impossible to satisfy precisely.",
-    "Backend UserProfile.accountId is a placeholder string (\"generated_account_<username>\") and does not match the real ICP account identifier derived client-side.",
-    "Canister state (profiles, sessions, roles, flags) is not stored in stable variables and will be lost on canister upgrade.",
-    "Internet Identity provider URL is read from process.env.II_URL; in a Vite frontend this may be undefined unless explicitly configured/bridged.",
-    "Untyped word count is incorrect when skipping/finishing; intended logic is (total level words - words actually typed, even if incorrect)."
+    "Build/deployment attempt failed with error: \"Our AI couldn't handle that request\"; user requested retry."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "IF-1",
-      "title": "Internet Identity authentication context",
-      "synonyms": [
-        "II login",
-        "AuthClient provider",
-        "InternetIdentityProvider"
-      ],
-      "description": "Provides a React context and hook (useInternetIdentity) to initialize/load an identity from storage, login via Internet Identity, logout/clear state, and expose granular login state flags and errors.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-2",
-      "title": "Secret token extraction from URL hash with session persistence",
-      "synonyms": [
-        "URL hash secret",
-        "caffeineAdminToken handling",
-        "urlParams utilities"
-      ],
-      "description": "Utilities read sensitive parameters from the URL hash fragment, persist them in sessionStorage, and clear them from the address bar to reduce leakage (used for admin bootstrap token).",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-3",
-      "title": "Identity-bound backend actor creation and cache invalidation",
-      "synonyms": [
-        "useActor",
-        "actor per principal",
-        "canister actor initialization"
-      ],
-      "description": "Creates an anonymous actor when logged out and an authenticated actor when logged in; on authenticated creation calls _initializeAccessControlWithSecret and then invalidates/refetches React Query caches that depend on the actor.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-4",
-      "title": "Role-based access control in Motoko (admin/user/guest)",
-      "synonyms": [
-        "AccessControl",
-        "MixinAuthorization",
-        "RBAC"
-      ],
-      "description": "Implements user roles and permission checks in Motoko, including initialization via an env-provided admin token + user-provided secret, role queries, admin assignment, and isCallerAdmin checks.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-5",
-      "title": "React Query data layer for canister API",
-      "synonyms": [
-        "useQueries",
-        "query caching",
-        "mutations"
-      ],
-      "description": "Centralized hooks for querying/mutating canister state (profile, sessions, leaderboard, competition state, admin check, canister account ID, transaction history) with retries, cache updates, and invalidation patterns.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-6",
-      "title": "User profile onboarding modal",
-      "synonyms": [
-        "ProfileSetupModal",
-        "username setup"
-      ],
-      "description": "Shows a mandatory profile creation modal for new authenticated users (null profile), collects a username, triggers createProfile, and displays special messaging for the first user.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-7",
-      "title": "Backend user profile management",
-      "synonyms": [
-        "createProfile",
-        "getCallerUserProfile",
-        "saveCallerUserProfile"
-      ],
-      "description": "Motoko canister stores per-principal profiles with unique usernames, supports profile creation, caller retrieval, admin/user lookup, and saving updates while preserving principal/accountId/isAdmin fields.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-8",
-      "title": "First-user flag tracking",
-      "synonyms": [
-        "firstUserFlag",
-        "owner indicator"
-      ],
-      "description": "Backend tracks the first profile creator principal via firstUserFlag and exposes an authenticated query used by the frontend to show first-user/owner messaging during onboarding.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-9",
-      "title": "Typing challenge core gameplay (5 levels, shared timer, XP scoring)",
-      "synonyms": [
-        "TypingChallenge",
-        "typing test",
-        "multi-level challenge"
-      ],
-      "description": "Implements a 5-level typing challenge with a single 10-minute timer, level texts, progress display, and per-word scoring (+5 correct, -10 incorrect, 0 untyped), including finish-on-timeout and manual finish on the last level.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-10",
-      "title": "Enhanced Next Level flow with exact-word gating, skip confirmation, and exceeded-words tooltip",
-      "synonyms": [
-        "Next Level logic",
-        "skip-level confirmation",
-        "exceeded required words warning"
-      ],
-      "description": "Next Level advances immediately when exactly the required word count is typed; shows a confirmation dialog when under-typed (Skip/Cancel); blocks advancement and re-shows a warning tooltip when the user has exceeded the required words.",
+      "id": "feature-fix-the-typing-challenge-final-results-word-counting-so-that-typed-correct-mistyped-untyped-are-computed-across-the-entire-5-level-run-including-when-the-player-clicks-next-to-skip-levels-using-the-definitions-typedwords-correctwords-mistypedwords-correctwords-counts-words-where-the-typed-word-exactly-matches-the-corresponding-level-paragraph-word-in-the-same-order-mistypedwords-counts-words-that-were-typed-but-are-not-an-exact-match-to-the-corresponding-paragraph-word-in-the-same-order-untypedwords-totalwordsacrossalllevels-correctwords-mistypedwords-ensure-the-final-results-no-longer-show-0-typed-mistyped-when-level-1-was-typed-then-the-user-advanced-to-the-end",
+      "title": "Fix the Typing Challenge final results word counting so that typed/correct/mistyped/untyped are computed across the entire 5-level run (including when the player clicks Next to skip levels), using the definitions: typedWords = correctWords + mistypedWords; correctWords counts words where the typed word exactly matches the corresponding level paragraph word in the same order; mistypedWords counts words that were typed but are not an exact match to the corresponding paragraph word in the same order; untypedWords = totalWordsAcrossAllLevels - (correctWords + mistypedWords). Ensure the final results no longer show 0 typed/mistyped when level 1 was typed then the user advanced to the end.",
       "reqIds": [
-        "REQ-1",
-        "REQ-2",
-        "REQ-3",
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-landing-page-top-players-card-login-page-show-only-the-top-3-scores-by-default-add-an-expand-collapse-control-a-toggle-as-requested-that-expands-the-card-to-reveal-the-remaining-players-collapsing-returns-to-showing-only-the-top-3",
+      "title": "On the landing page Top Players card (Login page), show only the top 3 scores by default. Add an expand/collapse control (a '^' toggle as requested) that expands the card to reveal the remaining players; collapsing returns to showing only the top 3.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-backend-support-and-admin-dashboard-ui-for-a-website-visitors-section-showing-unique-visitors-today-unique-as-in-different-ips-total-visitors-today-and-total-visitors-visitor-identity-must-be-derived-from-an-anonymized-version-of-the-user-s-ip-fetched-via-ipify-and-visits-must-be-counted-only-when-the-landing-page-is-loaded",
+      "title": "Add backend support and Admin Dashboard UI for a “Website visitors” section showing: “Unique visitors today (unique as in different IPs)”, “Total visitors today”, and “Total visitors”. Visitor identity must be derived from an anonymized version of the user’s IP fetched via ipify, and visits must be counted only when the landing page is loaded.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-backend-support-and-admin-dashboard-ui-for-a-users-section-that-lists-all-registered-users-by-their-profile-names-if-there-are-more-than-2-users-paginate-the-list-with-20-users-per-page-and-provide-page-navigation-controls",
+      "title": "Add backend support and Admin Dashboard UI for a “Users” section that lists all registered users by their profile names. If there are more than 2 users, paginate the list with 20 users per page and provide page navigation controls.",
+      "reqIds": [
         "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "IF-11",
-      "title": "Perfect-run time bonus XP rule",
-      "synonyms": [
-        "time bonus",
-        "speed bonus"
-      ],
-      "description": "Awards a +5 XP per remaining second time bonus only for a perfect run (no mistypes, no skipped levels, no skipped words) that finishes naturally (not manual early finish or timeout).",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-12",
-      "title": "Basic anti-cheat input restrictions",
-      "synonyms": [
-        "disable paste",
-        "disable drag/drop",
-        "disable context menu"
-      ],
-      "description": "Prevents paste, drag-and-drop, and context menu actions in the typing input and shows toast feedback for blocked actions.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-13",
-      "title": "Challenge session persistence and retrieval",
-      "synonyms": [
-        "saveChallengeSession",
-        "getUserChallengeSessions",
-        "session history"
-      ],
-      "description": "Saves completed sessions (principal, timestamp, XP earned) in the canister, allows callers to list their sessions, and invalidates sessions/leaderboard caches after saving.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-14",
-      "title": "Stats page (personal totals and session table)",
-      "synonyms": [
-        "StatsPage",
-        "personal analytics"
-      ],
-      "description": "Displays total XP, session count, average XP, and a session history table with timestamp formatting (nanoseconds → local date/time).",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-15",
-      "title": "Global leaderboard and public leaderboard preview",
-      "synonyms": [
-        "LeaderboardPage",
-        "public top-10"
-      ],
-      "description": "Backend computes best single-session XP per user and filters out admins; frontend displays a full leaderboard and a top-10 preview on the login page.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-16",
-      "title": "Admin dashboard (permission gating + competition toggle)",
-      "synonyms": [
-        "AdminDashboard",
-        "competitionActive"
-      ],
-      "description": "Admin-only UI that verifies permissions via isCallerAdmin, shows access denied for non-admins, and allows toggling a backend competitionActive flag (getCompetitionState/setCompetitionState).",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-17",
-      "title": "App canister identity resolution from env + client-side account ID derivation",
-      "synonyms": [
-        "appIdentity",
-        "donation address derivation",
-        "canister principal display"
-      ],
-      "description": "Resolves the backend canister principal from common Vite/dfx env var keys and derives the canister’s ledger account identifier client-side; used for donation display and admin identity copy actions.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-18",
-      "title": "ICP account identifier derivation utility",
-      "synonyms": [
-        "principalToAccountIdentifier",
-        "SHA-224 + CRC32"
-      ],
-      "description": "Implements ICP account identifier generation from a Principal (domain separator + principal bytes + subaccount, SHA-224 via truncated SHA-256, CRC32 checksum, hex encoding).",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-19",
-      "title": "Wallet UI (principal/account display + withdrawal UX stub)",
-      "synonyms": [
-        "WalletPage",
-        "withdraw dialog"
-      ],
-      "description": "Displays the user’s Principal and derived account ID with copy-to-clipboard, shows an (currently stubbed) balance, and provides a withdrawal dialog that validates inputs and calls a stubbed withdraw mutation.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-20",
-      "title": "Admin prize send modal and transaction history view (stubbed backend)",
-      "synonyms": [
-        "SendICPPrizeModal",
-        "transaction history"
-      ],
-      "description": "Provides admin UI to enter recipient account ID and ICP amount for prize sending, with validations and success/error states; queries transaction history for display (though backend does not currently create transactions).",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-21",
-      "title": "Application shell (header/footer, navigation, robust loading/error states)",
-      "synonyms": [
-        "App.tsx shell",
-        "page state navigation"
-      ],
-      "description": "Top-level app flow handles initialization, login gating, actor connection states, profile loading/onboarding (null profile → modal), and renders pages within a shared header/footer layout with conditional admin navigation.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "IF-22",
-      "title": "Post-completion performance stats (accuracy/WPM/word breakdown) with session persistence",
-      "synonyms": [
-        "challenge results stats",
-        "accuracy percent",
-        "WPM",
-        "correct/mistyped/untyped counts",
-        "session stats persistence"
-      ],
-      "description": "On typing challenge completion, computes and displays additional performance stats (accuracy %, WPM, correct words, mistyped words, and untyped words when > 0) alongside XP, and persists these fields into stored session records so the Stats page can render them per session.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-23",
-      "title": "Typing level texts aligned to exact required word counts",
-      "synonyms": [
-        "level paragraph word count fix",
-        "requiredWords alignment"
-      ],
-      "description": "Updates each typing level paragraph so its word count matches the level’s required word count to prevent exceeded/required word-count UX mismatches.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-typed-word-counting-so-that-a-level-reports-0-typed-words-until-the-user-has-entered-at-least-one-non-whitespace-character-that-remains-i-e-do-not-count-1-typed-word-when-the-input-is-empty-and-do-not-count-a-word-if-the-user-typed-it-and-then-deleted-it-before-clicking-next-level-update-all-ui-counters-progress-and-any-gating-logic-that-depends-on-typed-word-counts-to-use-this-corrected-logic",
-      "title": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-adjust-the-landing-page-layout-so-the-top-players-card-and-the-get-started-card-each-visually-match-the-combined-size-of-two-of-the-smaller-feature-cards-5-levels-earn-xp-win-icp-when-viewed-on-typical-desktop-breakpoints-creating-a-more-professional-balanced-layout",
-      "title": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-polish-the-test-results-post-challenge-completion-layout-so-the-wpm-display-fits-on-a-single-line-when-it-reads-not-available-test-duration-60-secs-and-adjust-the-surrounding-stat-boxes-to-maintain-a-professional-consistent-appearance",
-      "title": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-the-donate-here-section-from-the-app-s-footer-area-landing-view-for-now-remove-the-ui-block-showing-donate-here-and-the-donation-account-id",
-      "title": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
-      "reqIds": [
-        "REQ-9"
       ],
       "version": 1
     }
@@ -336,55 +48,30 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Challenge Rules page: align each rule text vertically",
+      "summary": "Fix word counting results across level progression (typed/correct/mistyped/untyped logic)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Fix word counting: compute untyped words as (total words in level - number of words user actually typed, including incorrect)",
+      "summary": "Landing page Top Players: show only top 3 scores with expandable section to reveal the rest",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "WPM calculation/display: show \"not available (test duration < 60 secs)\" if finished before 60s; otherwise WPM = total typed words / integer minutes elapsed",
+      "summary": "Admin dashboard: add Website visitors analytics (Unique visitors today by anonymized IP via ipify; Total visitors today; Total visitors; counted only on landing page)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Update level 1–5 paragraphs to the exact provided texts",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Fix typed-word counting: if user types no characters for a level, count 0 typed words (don’t count 1 unless at least one character was entered and not deleted before clicking Next Level)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Landing page layout: make the \"Top Players\" and \"Get Started\" boxes match the combined size of the smaller \"5 Levels\"/\"Earn XP\"/\"Win ICP\" boxes for a more professional look",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Test results layout: resize the WPM box so \"not available (test duration < 60 secs)\" fits on one line and adjust the other boxes to keep the page looking professional",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Remove the \"Donate here\" section from the footer (temporarily)",
+      "summary": "Admin dashboard: add Users section listing registered profile names; paginate if >2 users (20 users/page)",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "TypeFaster",
-  "clarification_mode": "pro",
+  "projectName": "TypeFaster v57: Fix typing word-count results, landing Top Players collapse, and add Admin visitors + users sections",
+  "clarification_mode": "instant",
   "clarification_rounds": 0
 }

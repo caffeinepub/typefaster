@@ -1,34 +1,14 @@
 import Map "mo:core/Map";
+import Principal "mo:core/Principal";
 import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
-import Principal "mo:core/Principal";
 
 module {
-  type OldChallengeSession = {
-    user : Principal;
-    timestamp : Int;
-    xpEarned : Int;
-  };
-
-  type OldActor = {
-    userProfiles : Map.Map<Principal, {
-      username : Text;
-      principal : Principal;
-      accountId : Text;
-      isAdmin : Bool;
-    }>;
-    challengeSessions : Map.Map<Principal, [OldChallengeSession]>;
-    canisterAccountId : ?Text;
-    competitionActive : Bool;
-    firstUserFlag : ?Principal;
-    transactionHistory : Map.Map<Nat, {
-      from : Text;
-      to : Text;
-      amount : Nat64;
-      timestamp : Int;
-      status : Text;
-    }>;
-    transactionCounter : Nat;
+  type UserProfile = {
+    username : Text;
+    principal : Principal.Principal;
+    accountId : Text;
+    isAdmin : Bool;
   };
 
   type ChallengeMetrics = {
@@ -40,58 +20,51 @@ module {
     untypedWords : Int;
   };
 
-  type NewChallengeSession = {
-    user : Principal;
+  type ChallengeSession = {
+    user : Principal.Principal;
     timestamp : Int;
     metrics : ChallengeMetrics;
   };
 
-  type NewActor = {
-    userProfiles : Map.Map<Principal, {
-      username : Text;
-      principal : Principal;
-      accountId : Text;
-      isAdmin : Bool;
-    }>;
-    challengeSessions : Map.Map<Principal, [NewChallengeSession]>;
+  type ICPBalance = Nat64;
+  type ICPAmount = Nat64;
+  type ICPTransaction = {
+    from : Text;
+    to : Text;
+    amount : ICPAmount;
+    timestamp : Int;
+    status : Text;
+  };
+
+  type VisitorCount = {
+    totalVisits : Nat;
+    uniqueVisitors : Nat;
+    lastUpdated : Int;
+  };
+
+  type OldActor = {
+    userProfiles : Map.Map<Principal.Principal, UserProfile>;
+    challengeSessions : Map.Map<Principal.Principal, [ChallengeSession]>;
     canisterAccountId : ?Text;
     competitionActive : Bool;
-    firstUserFlag : ?Principal;
-    transactionHistory : Map.Map<Nat, {
-      from : Text;
-      to : Text;
-      amount : Nat64;
-      timestamp : Int;
-      status : Text;
-    }>;
+    firstUserFlag : ?Principal.Principal;
+    transactionHistory : Map.Map<Nat, ICPTransaction>;
     transactionCounter : Nat;
   };
 
-  public func run(old : OldActor) : NewActor {
-    let newChallengeSessions = old.challengeSessions.map<Principal, [OldChallengeSession], [NewChallengeSession]>(
-      func(_principal, oldSessions) {
-        oldSessions.map(
-          func(oldSession) {
-            {
-              user = oldSession.user;
-              timestamp = oldSession.timestamp;
-              metrics = {
-                xpEarned = oldSession.xpEarned;
-                accuracyPercent = 0.0;
-                wpm = 0;
-                correctWords = 0;
-                mistypedWords = 0;
-                untypedWords = 0;
-              };
-            };
-          }
-        );
-      },
-    );
+  type NewActor = {
+    userProfiles : Map.Map<Principal.Principal, UserProfile>;
+    challengeSessions : Map.Map<Principal.Principal, [ChallengeSession]>;
+    canisterAccountId : ?Text;
+    competitionActive : Bool;
+    firstUserFlag : ?Principal.Principal;
+    transactionHistory : Map.Map<Nat, ICPTransaction>;
+    transactionCounter : Nat;
+    visitorCounts : Map.Map<Text, VisitorCount>;
+  };
 
-    {
-      old with
-      challengeSessions = newChallengeSessions;
-    };
+  public func run(old : OldActor) : NewActor {
+    let visitorCounts = Map.empty<Text, VisitorCount>();
+    { old with visitorCounts };
   };
 };

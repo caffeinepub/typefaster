@@ -132,10 +132,16 @@ export interface backendInterface {
     getCompetitionState(): Promise<boolean>;
     getFirstUserFlag(): Promise<Principal | null>;
     getLeaderboard(): Promise<Array<[string, bigint]>>;
+    getTotalUniqueVisitors(): Promise<bigint>;
+    getTotalVisitors(): Promise<bigint>;
+    getTotalVisitsToday(): Promise<bigint>;
     getTransactionHistory(): Promise<Array<ICPTransaction>>;
+    getUniqueVisitorsToday(): Promise<bigint>;
     getUserChallengeSessions(): Promise<Array<ChallengeSession>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getUsers(page: bigint): Promise<Array<UserProfile>>;
     isCallerAdmin(): Promise<boolean>;
+    recordVisitor(visitorId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveChallengeSession(metrics: ChallengeMetrics): Promise<void>;
     setCanisterAccountId(accountId: string): Promise<void>;
@@ -284,6 +290,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getTotalUniqueVisitors(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTotalUniqueVisitors();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTotalUniqueVisitors();
+            return result;
+        }
+    }
+    async getTotalVisitors(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTotalVisitors();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTotalVisitors();
+            return result;
+        }
+    }
+    async getTotalVisitsToday(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTotalVisitsToday();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTotalVisitsToday();
+            return result;
+        }
+    }
     async getTransactionHistory(): Promise<Array<ICPTransaction>> {
         if (this.processError) {
             try {
@@ -295,6 +343,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getTransactionHistory();
+            return result;
+        }
+    }
+    async getUniqueVisitorsToday(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUniqueVisitorsToday();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUniqueVisitorsToday();
             return result;
         }
     }
@@ -326,6 +388,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getUsers(arg0: bigint): Promise<Array<UserProfile>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUsers(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUsers(arg0);
+            return result;
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -337,6 +413,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isCallerAdmin();
+            return result;
+        }
+    }
+    async recordVisitor(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.recordVisitor(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.recordVisitor(arg0);
             return result;
         }
     }

@@ -1,71 +1,92 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix typed-word counting edge case, refine landing/results layouts, and remove Donate section",
+  "title": "TypeFaster v57 frontend fixes: cumulative typing metrics, Top Players collapse, and Admin visitors/users sections",
   "requirements": [
     {
-      "id": "REQ-6",
-      "summary": "Correct typed-word counting so empty/fully-deleted input counts as 0 words and does not advance progress or gating.",
+      "id": "REQ-1",
+      "summary": "Compute final typing results word counts across the entire 5-level run (including skipped levels) using the specified correct/mistyped/typed/untyped definitions.",
       "acceptanceCriteria": [
-        "With an empty input (no characters typed), the on-screen “Words typed” count shows 0 (not 1).",
-        "If the user types characters and then deletes them so the input becomes empty again, the “Words typed” count returns to 0.",
-        "Clicking “Next Level” with an empty input does not record/reflect 1 typed word anywhere in the level’s progression or displayed counters.",
-        "Progress calculation does not advance when the input is empty (progress remains 0%)."
+        "Scenario A: User types all words in Level 1 correctly, then clicks Next through Levels 2–5 without typing any additional words; final results show typedWords=20, correctWords=20, mistypedWords=0, untypedWords=845 (based on current LEVELS total word count of 865).",
+        "Scenario B: User types 0 words for the whole run and clicks Next through to the end; final results show typedWords=0, correctWords=0, mistypedWords=0, untypedWords=865.",
+        "Final results counts are stable and do not depend only on the last level’s input field state (i.e., counts remain correct even though the UI clears userInput when advancing levels)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/TypingChallenge.tsx",
           "operation": "modify",
-          "description": "Update typed-word parsing/counting to return 0 when userInput has no remaining non-whitespace characters; ensure progress %, exceeded-word detection, and the on-screen “Words typed” counter all use the corrected derived typed-words array/count (avoiding trim().split(' ') producing [''] for empty input)."
+          "description": "Add per-level run-state to persist the typed words for each level before userInput is cleared, and update final results calculation to aggregate correctWords/mistypedWords across all 5 levels in order; ensure typedWords = correctWords + mistypedWords and untypedWords = totalWordsAcrossAllLevels - (correctWords + mistypedWords), including when user skips levels via Next/skip/finish/timeout."
         }
       ]
     },
     {
-      "id": "REQ-7",
-      "summary": "Adjust landing page card sizing so “Top Players” and “Get Started” visually match the combined height of two small feature cards on desktop while staying responsive on mobile.",
+      "id": "REQ-2",
+      "summary": "Collapse landing page Top Players list to top 3 by default with a '^' expand/collapse toggle to reveal ranks #4+.",
       "acceptanceCriteria": [
-        "On desktop (md and up), the “Top Players” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
-        "On desktop (md and up), the “Get Started” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
-        "Spacing, alignment, and card sizing look consistent across the section (no obviously mismatched card heights or awkward gaps).",
-        "On mobile/small screens, the layout remains readable and does not overflow horizontally."
+        "When the landing page leaderboard loads with N>=4 entries, only ranks #1–#3 are visible by default.",
+        "A visible '^' toggle expands the list to show ranks #4+; the toggle can be used again to collapse back to only top 3.",
+        "No changes are made to the leaderboard sorting logic other than the default visible subset behavior."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Restructure the landing cards layout and apply consistent desktop sizing rules (e.g., shared min-heights / grid alignment) so the “Top Players” and “Get Started” cards visually equal ~2x the small feature card height on md+ breakpoints, while maintaining a clean stacked layout on small screens. Verify the component's usage instructions before implementing."
+          "description": "Implement an expand/collapse UI control (rendered as '^') on the Top Players card that toggles between rendering only the top 3 entries vs. rendering the remaining entries; keep existing sorting unchanged and only change the visible subset behavior."
         }
       ]
     },
     {
-      "id": "REQ-8",
-      "summary": "Polish results stat tiles so the WPM fallback text stays on one line and the stat boxes remain consistent and responsive.",
+      "id": "REQ-3",
+      "summary": "Track landing-page-only visits using ipify-derived anonymized visitor IDs and show admin visitor metrics in the Admin Dashboard UI.",
       "acceptanceCriteria": [
-        "When the test duration is under 60 seconds, the WPM value text “not available (test duration < 60 secs)” renders on a single line (no wrapping).",
-        "The results stat cards/tiles remain visually consistent (padding, alignment, and sizing) after resizing the WPM tile.",
-        "The results layout remains responsive and does not overflow on small screens."
+        "Frontend (landing page) calls ipify (https://api.ipify.org?format=json) on landing page load to obtain an IP-derived identifier, anonymizes it client-side, and records a visit to the backend.",
+        "Backend stores sufficient data to return three values to admins: unique visitors today, total visitors today, and total visitors all-time.",
+        "Admin Dashboard shows a “Website visitors” section with exactly these three labeled values in English.",
+        "Refreshing/revisiting the landing page increments “Total visitors today” and “Total visitors”; “Unique visitors today” increments only once per anonymized-IP identifier per day.",
+        "No other pages besides the landing page trigger visit tracking."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/TypingChallenge.tsx",
+          "path": "frontend/src/utils/visitorId.ts",
+          "operation": "create",
+          "description": "Add a small utility that fetches the public IP from ipify (https://api.ipify.org?format=json) and produces a stable anonymized visitor identifier client-side (e.g., a one-way hash) suitable for sending to the backend without sending the raw IP."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Adjust the post-completion stats grid/tile styling so the WPM value uses non-wrapping text behavior and the stat tiles keep consistent padding/alignment/sizing across breakpoints (including small screens). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "summary": "Remove the “Donate here” section from the landing/footer area and ensure spacing remains intentional.",
-      "acceptanceCriteria": [
-        "The UI no longer shows any “Donate here:” text anywhere in the footer/landing page area.",
-        "No donation account id is displayed in the UI.",
-        "The rest of the landing page spacing looks intentional after removal (no large empty gap where the section was)."
-      ],
-      "file_operations": [
+          "description": "Add React Query hooks/mutations for (1) recording a visit (calling backend recordVisitor with the anonymized visitorId) and (2) fetching visitor analytics values for admins (getUniqueVisitorsToday, getTotalVisitsToday, getTotalVisitors)."
+        },
         {
           "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Remove the landing-page donation UI block (“Donate here:” and account id), and clean up any related state/effects/imports so no donation account id is derived or rendered; ensure surrounding spacing/borders still look deliberate."
+          "description": "On landing page load only, call ipify to obtain an IP-derived value, anonymize it client-side, and then call the backend to record the visit; ensure this tracking is not triggered from any other page."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Add a new “Website visitors” section that displays exactly three labeled values in English: “Unique visitors today (unique as in different IPs)”, “Total visitors today”, and “Total visitors”, using the existing admin gating. Use the selected \"authorization\" component’s role-based access patterns already present (admin checks) to keep this section admin-only. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add an Admin Dashboard “Users” section listing registered user profile names with pagination (20 per page) when more than 2 users exist.",
+      "acceptanceCriteria": [
+        "Backend provides an admin-only method to fetch the set of registered user profile names (and any additional minimal fields needed for stable pagination).",
+        "Admin Dashboard renders a “Users” section listing profile names for all registered users.",
+        "If total registered users > 2, the UI paginates with page size 20 and includes controls to navigate pages.",
+        "If total registered users <= 2, the section still lists the users without pagination controls (or pagination controls are hidden/disabled)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query hook for fetching users for the admin dashboard via backend getUsers(page) and returning the list for the requested page (page size handled by backend)."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Add a “Users” section listing registered users by profile name (username) and implement client-side pagination controls with 20 users per page when more than 2 users exist (hide/disable controls when <=2). Keep the section behind the existing admin access check (per the selected \"authorization\" component’s role-based access pattern). Verify the component's usage instructions before implementing."
         }
       ]
     }
