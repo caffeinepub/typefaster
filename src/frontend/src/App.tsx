@@ -165,7 +165,7 @@ export default function App() {
       case 'leaderboard':
         return <LeaderboardPage onReturn={() => setCurrentPage('menu')} />;
       case 'admin':
-        return <AdminDashboard />;
+        return <AdminDashboard onReturn={() => setCurrentPage('menu')} />;
       default:
         return <MainMenu onNavigate={setCurrentPage} />;
     }

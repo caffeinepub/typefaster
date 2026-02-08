@@ -5,16 +5,17 @@ import Array "mo:core/Array";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
-import Nat "mo:core/Nat";
-import Text "mo:core/Text";
 import Iter "mo:core/Iter";
-import List "mo:core/List";
-import Migration "migration";
+
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-(with migration = Migration.run)
+// Use Migration.run on upgrade to migrate existing state to new one.
+// This is opt-in and only needs to be specified on legacy systems;
+// new actors are migrated by simply adding the new actor into `main.mo`
+// and removing obsolete bits.
+
 actor {
   type UserProfile = {
     username : Text;
@@ -48,24 +49,6 @@ actor {
     status : Text;
   };
 
-  type VisitorCount = {
-    totalVisits : Nat;
-    uniqueVisitors : Nat;
-    lastUpdated : Int;
-  };
-
-  type AdminDashboardMetrics = {
-    uniqueVisitorsToday : Nat;
-    totalVisitsToday : Nat;
-    totalVisitors : Nat;
-    userCount : Nat;
-    dailyActiveUsers : Nat;
-    avgSessionDuration : Nat;
-  };
-
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
-
   let userProfiles = Map.empty<Principal, UserProfile>();
   let challengeSessions = Map.empty<Principal, [ChallengeSession]>();
   var canisterAccountId : ?Text = null;
@@ -74,9 +57,12 @@ actor {
 
   let transactionHistory = Map.empty<Nat, ICPTransaction>();
   var transactionCounter : Nat = 0;
-  let visitorCounts = Map.empty<Text, VisitorCount>();
+
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
 
   public query func getLeaderboard() : async [(Text, Int)] {
+    // Public leaderboard - accessible to everyone including guests
     let profiles = userProfiles.toArray();
     let leaderboardData = profiles.map(
       func(p, profile) {
@@ -118,6 +104,7 @@ actor {
   };
 
   public query func getCompetitionState() : async Bool {
+    // Public competition state - accessible to everyone including guests
     competitionActive;
   };
 
@@ -143,42 +130,6 @@ actor {
       case (?sessions) { sessions };
       case (null) { [] };
     };
-  };
-
-  public query ({ caller }) func getTotalVisitors() : async Nat {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can view total visitors");
-    };
-
-    let count = visitorCounts.toArray().foldLeft(0, func(acc, entry) { acc + entry.1.totalVisits });
-    count;
-  };
-
-  public query ({ caller }) func getTotalUniqueVisitors() : async Nat {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can view total unique visitors");
-    };
-
-    let count = visitorCounts.toArray().foldLeft(0, func(acc, entry) { acc + entry.1.uniqueVisitors });
-    count;
-  };
-
-  public query ({ caller }) func getUsers(page : Nat) : async [UserProfile] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can view users list");
-    };
-
-    let allUsers = userProfiles.toArray();
-    // Filter out admin profiles from the results,
-    let filteredUsers = allUsers.filter(func(t) { t.1.isAdmin == false });
-    let usersArray = filteredUsers.map(func(entry) { entry.1 });
-
-    let startIndex = page * 20;
-    if (startIndex >= usersArray.size()) { return [] };
-
-    let endIndex = Nat.min((startIndex + 20), usersArray.size());
-
-    usersArray.sliceToArray(startIndex, endIndex);
   };
 
   public shared ({ caller }) func createProfile(username : Text) : async UserProfile {
@@ -222,7 +173,7 @@ actor {
 
     if (isFirstUser) {
       firstUserFlag := ?caller;
-    };
+    } else { () };
 
     userProfiles.add(caller, userProfile);
     userProfile;
@@ -299,59 +250,6 @@ actor {
 
     let transactions = transactionHistory.toArray();
     transactions.map(func(_, tx) { tx });
-  };
-
-  public shared func recordVisitor(visitorId : Text) : async () {
-    // Public function - must be accessible to all visitors including guests
-    // This is called when the landing page loads to track visitor statistics
-    let today = Time.now();
-
-    switch (visitorCounts.get(visitorId)) {
-      case (?counts) {
-        let todayCounts = if (counts.lastUpdated == today) {
-          {
-            counts with totalVisits = counts.totalVisits + 1;
-          };
-        } else {
-          {
-            totalVisits = 1;
-            uniqueVisitors = 1;
-            lastUpdated = today;
-          };
-        };
-        visitorCounts.add(visitorId, todayCounts);
-      };
-      case (null) {
-        visitorCounts.add(
-          visitorId,
-          {
-            totalVisits = 1;
-            uniqueVisitors = 1;
-            lastUpdated = today;
-          },
-        );
-      };
-    };
-  };
-
-  public query ({ caller }) func getUniqueVisitorsToday() : async Nat {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can view unique visitors today");
-    };
-
-    let today = Time.now();
-    let count = visitorCounts.toArray().foldLeft(0, func(acc, entry) { acc + entry.1.uniqueVisitors });
-    count;
-  };
-
-  public query ({ caller }) func getTotalVisitsToday() : async Nat {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can view total visits today");
-    };
-
-    let today = Time.now();
-    let count = visitorCounts.toArray().foldLeft(0, func(acc, entry) { acc + entry.1.totalVisits });
-    count;
   };
 
   private func calculateBestSessionXP(user : Principal) : Int {

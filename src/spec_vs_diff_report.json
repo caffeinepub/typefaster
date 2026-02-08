@@ -1,103 +1,25 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T13:11:15.072Z",
-  "summary": "REQ-1 and most of REQ-3/REQ-4 appear to have been started (cross-level word tracking; ipify-based visitor ID + record call; admin hooks for visitor metrics and users). However, the diff also includes multiple unrelated UI/behavior changes outside Tasks 1–4, and REQ-2’s specific '^' toggle control is not evidenced (Chevron icons are used instead).",
+  "generatedAt": "2026-02-06T01:01:27.051Z",
+  "summary": "The diff shows updates to the landing page (LoginPage) and the typing challenge (TypingChallenge), plus updates to documentation/state summary files. REQ-6, REQ-7, and REQ-8 are indicated as addressed in the modified page files, but REQ-9 cannot be fully verified because no footer component change is present in the modified-files list (only the landing page view is evidenced).",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Landing page Top Players card uses a '^' expand/collapse toggle control to show ranks #4+ and collapse back to top 3.",
-      "reason": "LoginPage implements expand/collapse but imports and (by implication) uses ChevronDown/ChevronUp icons rather than the specifically requested '^' toggle.",
+      "id": "REQ-9",
+      "requirement": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
+      "reason": "The landing page file is modified and the summary states the donation section was removed there, but there is no code evidence in the diff summary that the footer component itself was updated. Since REQ-9 explicitly mentions the footer area/landing view, removal from the footer cannot be confirmed from the provided modified-files list.",
       "evidence": [
-        "frontend/src/pages/LoginPage.tsx (imports ChevronDown, ChevronUp; expand/collapse state present)"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Paginate Users list with 20 users per page when more than 2 users, with page navigation controls.",
-      "reason": "AdminDashboard shows pagination-related state and uses a pagination component, but the diff summary does not show any explicit page size of 20 or logic that switches pagination on only when total users > 2.",
-      "evidence": [
-        "frontend/src/pages/AdminDashboard.tsx (usersPage state, loadUsers(page), imports Pagination components)"
+        "frontend/src/pages/LoginPage.tsx (truncated)",
+        "frontend-file-summaries.txt (truncated)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Added/changed extensive global styling/theme (OKLCH colors, dark theme default).",
-      "reason": "Not requested in Tasks 1–4; constraints forbid unrelated UI/copy/behavior changes.",
-      "evidence": [
-        "frontend/src/index.css (described as new OKLCH color system, dark theme default)"
-      ]
-    },
-    {
-      "description": "Major App-level UX changes: new initialization/actor-connection/profile-loading error screens and altered login flow handling.",
-      "reason": "Not requested; violates “Make ONLY the changes described in Tasks 1–4”.",
-      "evidence": [
-        "frontend/src/App.tsx (loading screens, backend connection failure UI, profile loading error handling)"
-      ]
-    },
-    {
-      "description": "New/modified app identity configuration with extensive environment-variable console logging.",
-      "reason": "Not requested; unrelated to Tasks 1–4.",
-      "evidence": [
-        "frontend/src/config/appIdentity.ts (multiple console.log statements and env var resolution)"
-      ]
-    },
-    {
-      "description": "Admin dashboard additions beyond requested visitor metrics and users list (e.g., app canister identity display, ICP balance, send ICP prize functionality, transaction history, competition controls).",
-      "reason": "Tasks 3–4 only requested “Website visitors” and “Users” sections; other admin features are out of scope per constraints/non-goals.",
-      "evidence": [
-        "frontend/src/pages/AdminDashboard.tsx (imports useGetAppCanisterBalance, SendICPPrizeModal; icons Wallet/Send/Trophy etc; described features in frontend-file-summaries.txt)"
-      ]
-    },
-    {
-      "description": "Backend AdminDashboardMetrics type includes extra analytics fields (userCount, dailyActiveUsers, avgSessionDuration) not requested.",
-      "reason": "REQ-3 only requires three visitor values; additional analytics are explicitly out of scope (“No analytics beyond the three requested visitor metrics”).",
-      "evidence": [
-        "backend/main.mo (type AdminDashboardMetrics includes userCount, dailyActiveUsers, avgSessionDuration)"
-      ]
-    },
-    {
-      "description": "Stats page UI/behavior changes beyond requirements (new summary cards, table columns, conditional hiding of untyped words).",
-      "reason": "Not part of Tasks 1–4; unrelated UI/copy/behavior change.",
-      "evidence": [
-        "frontend/src/pages/StatsPage.tsx",
-        "frontend-file-summaries.txt (StatsPage description)"
-      ]
-    },
-    {
-      "description": "Wallet page UI/behavior changes (principal/account ID display, copy-to-clipboard, withdrawal dialog UX changes).",
-      "reason": "Not requested; non-goals explicitly mention ICP ledger integration is stubbed and should not be expanded beyond scope.",
-      "evidence": [
-        "frontend/src/pages/WalletPage.tsx",
-        "frontend-file-summaries.txt (WalletPage description)"
-      ]
-    },
-    {
-      "description": "Header/Footer/Profile setup modal copy/behavior changes (branding text style, caffeine.ai attribution, first-user crown messaging, enhanced success messages).",
-      "reason": "Not requested; violates “Make ONLY the changes described in Tasks 1–4; do not add or modify unrelated features, UI, copy, or behavior.”",
-      "evidence": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/Footer.tsx",
-        "frontend/src/components/ProfileSetupModal.tsx",
-        "frontend-file-summaries.txt (component descriptions)"
-      ]
-    }
-  ],
-  "confidence": 0.62,
+  "hallucinated_features": [],
+  "confidence": 0.64,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/config/appIdentity.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDashboard.tsx",
     "frontend/src/pages/LoginPage.tsx",
-    "frontend/src/pages/StatsPage.tsx",
     "frontend/src/pages/TypingChallenge.tsx",
-    "frontend/src/pages/WalletPage.tsx",
-    "frontend/src/utils/visitorId.ts",
     "project_state.json"
   ]
 }

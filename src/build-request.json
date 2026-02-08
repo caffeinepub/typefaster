@@ -1,113 +1,95 @@
 {
   "kind": "build_request",
-  "title": "TypeFaster v57: Fix typing word-count results, landing Top Players collapse, and add Admin visitors + users sections",
+  "title": "Fix typed-word counting edge case, polish landing/results layouts, and remove Donate section",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Fix the Typing Challenge final results word counting so that typed/correct/mistyped/untyped are computed across the entire 5-level run (including when the player clicks Next to skip levels), using the definitions: typedWords = correctWords + mistypedWords; correctWords counts words where the typed word exactly matches the corresponding level paragraph word in the same order; mistypedWords counts words that were typed but are not an exact match to the corresponding paragraph word in the same order; untypedWords = totalWordsAcrossAllLevels - (correctWords + mistypedWords). Ensure the final results no longer show 0 typed/mistyped when level 1 was typed then the user advanced to the end.",
+      "id": "REQ-6",
+      "text": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-messages-4",
+          "recent-messages-6"
         ],
         "quotes": [
-          "Task 1. Fix word counting",
-          "after testing the following scenario: all words in level 1 typed and clicking next until the end, the final result displayed was: 0 typed words, 0 mistyped, 865 untyped;",
-          "A counted word is any word typed by the user... Lastly the sum of untyped words is sum of all words minus correct and incorrect words"
+          "Looks like if user dhasn't typed any character for a level, the app still counts 1 typed word for that level so make sure 0 typed words are counted until user types at least a character and doesn't delete the word before clicking \"Next level\""
         ]
       },
       "acceptanceCriteria": [
-        "Scenario A: User types all words in Level 1 correctly, then clicks Next through Levels 2–5 without typing any additional words; final results show typedWords=20, correctWords=20, mistypedWords=0, untypedWords=845 (based on current LEVELS total word count of 865).",
-        "Scenario B: User types 0 words for the whole run and clicks Next through to the end; final results show typedWords=0, correctWords=0, mistypedWords=0, untypedWords=865.",
-        "Final results counts are stable and do not depend only on the last level’s input field state (i.e., counts remain correct even though the UI clears userInput when advancing levels)."
+        "With an empty input (no characters typed), the on-screen “Words typed” count shows 0 (not 1).",
+        "If the user types characters and then deletes them so the input becomes empty again, the “Words typed” count returns to 0.",
+        "Clicking “Next Level” with an empty input does not record/reflect 1 typed word anywhere in the level’s progression or displayed counters.",
+        "Progress calculation does not advance when the input is empty (progress remains 0%)."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "On the landing page Top Players card (Login page), show only the top 3 scores by default. Add an expand/collapse control (a '^' toggle as requested) that expands the card to reveal the remaining players; collapsing returns to showing only the top 3.",
+      "id": "REQ-7",
+      "text": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-messages-4"
         ],
         "quotes": [
-          "Task 2. - Show only the top 3 scores in \"Top Players\" on the landing page only revealing the rest only if the user clicks on a \"^ that expands the box\""
+          "For the landing page make sure the \"Top Players\" box and \"Get Started\" box both match the size of the smaller \"5 Levels\" \"Earn XP\" and \"Win ICP\" boxes added together so that page looks professional"
         ]
       },
       "acceptanceCriteria": [
-        "When the landing page leaderboard loads with N>=4 entries, only ranks #1–#3 are visible by default.",
-        "A visible '^' toggle expands the list to show ranks #4+; the toggle can be used again to collapse back to only top 3.",
-        "No changes are made to the leaderboard sorting logic other than the default visible subset behavior."
+        "On desktop (md and up), the “Top Players” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
+        "On desktop (md and up), the “Get Started” card height matches the height of two stacked small feature cards (within reasonable visual tolerance).",
+        "Spacing, alignment, and card sizing look consistent across the section (no obviously mismatched card heights or awkward gaps).",
+        "On mobile/small screens, the layout remains readable and does not overflow horizontally."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Add backend support and Admin Dashboard UI for a “Website visitors” section showing: “Unique visitors today (unique as in different IPs)”, “Total visitors today”, and “Total visitors”. Visitor identity must be derived from an anonymized version of the user’s IP fetched via ipify, and visits must be counted only when the landing page is loaded.",
-      "target": "both",
+      "id": "REQ-8",
+      "text": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-messages-4"
         ],
         "quotes": [
-          "Task 3. - Add a \"Website visitors\" section in the Admin dashboard showing \"Unique visitors today (unique as in different IPs)\" \"Total visitors today\" and \"Total visitors\"",
-          "Use ipify",
-          "A visit is counted only on the landing page",
-          "Use a third party API to get an anonymized version of users IP and use that for the \"Unique visitors today\", \"Total visitors today\", and \"Total visitors\" analytics appearing in the Admin dashboard."
+          "For the test results, modify the size of the box containing WPM so that \"not available (test duration < 60 secs) appears on a single line and make sure to adjust the other boxes as well so that page looks professional"
         ]
       },
       "acceptanceCriteria": [
-        "Frontend (landing page) calls ipify (https://api.ipify.org?format=json) on landing page load to obtain an IP-derived identifier, anonymizes it client-side, and records a visit to the backend.",
-        "Backend stores sufficient data to return three values to admins: unique visitors today, total visitors today, and total visitors all-time.",
-        "Admin Dashboard shows a “Website visitors” section with exactly these three labeled values in English.",
-        "Refreshing/revisiting the landing page increments “Total visitors today” and “Total visitors”; “Unique visitors today” increments only once per anonymized-IP identifier per day.",
-        "No other pages besides the landing page trigger visit tracking."
+        "When the test duration is under 60 seconds, the WPM value text “not available (test duration < 60 secs)” renders on a single line (no wrapping).",
+        "The results stat cards/tiles remain visually consistent (padding, alignment, and sizing) after resizing the WPM tile.",
+        "The results layout remains responsive and does not overflow on small screens."
       ]
     },
     {
-      "id": "REQ-4",
-      "text": "Add backend support and Admin Dashboard UI for a “Users” section that lists all registered users by their profile names. If there are more than 2 users, paginate the list with 20 users per page and provide page navigation controls.",
-      "target": "both",
+      "id": "REQ-9",
+      "text": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-messages-6"
         ],
         "quotes": [
-          "Task 4. - Add a \"Users\" section in the Admin dashboard listing all registered users by their profile names, if there are more than 2 use multiple pages for the list with 20 users per page"
+          "remove the \"Donate here\" section from the footer for now"
         ]
       },
       "acceptanceCriteria": [
-        "Backend provides an admin-only method to fetch the set of registered user profile names (and any additional minimal fields needed for stable pagination).",
-        "Admin Dashboard renders a “Users” section listing profile names for all registered users.",
-        "If total registered users > 2, the UI paginates with page size 20 and includes controls to navigate pages.",
-        "If total registered users <= 2, the section still lists the users without pagination controls (or pagination controls are hidden/disabled)."
+        "The UI no longer shows any “Donate here:” text anywhere in the footer/landing page area.",
+        "No donation account id is displayed in the UI.",
+        "The rest of the landing page spacing looks intentional after removal (no large empty gap where the section was)."
       ]
     }
   ],
   "constraints": [
-    "Make ONLY the changes described in Tasks 1–4; do not add or modify unrelated features, UI, copy, or behavior.",
-    "Use ipify as the third-party API for IP-derived identification: https://api.ipify.org?format=json.",
-    "Count visits only on the landing page (Login page).",
-    "Backend remains single-actor in backend/main.mo; do not introduce additional backend services.",
-    "Do not edit files under frontend/src/components/ui or any other frontend immutablePaths; compose existing UI components instead."
+    "Frontend files listed as immutable in SYSTEM_CONTEXT must not be edited (compose existing UI components instead).",
+    "Keep all changes within the existing single-actor Motoko backend architecture; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Implementing ICP ledger balance/prize distribution backend (currently stubbed in UI).",
-    "Changing challenge text content, level structure, XP rules, time bonus rules, or anti-cheat behaviors beyond what is required to correct word counting outputs.",
-    "Adding analytics beyond the three requested visitor metrics or tracking visits on other pages."
+    "Implementing ICP ledger integration, real prize transfers, or enabling the currently-stubbed wallet/prize flows.",
+    "Changing authentication (Internet Identity) behavior or role/access-control policies.",
+    "Redesigning unrelated pages beyond the landing page and the post-challenge results layout adjustments requested."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

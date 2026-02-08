@@ -1,4 +1,4 @@
-import { useGetUserChallengeSessions } from '../hooks/useQueries';
+import { useGetChallengeSessions } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ interface StatsPageProps {
 }
 
 export default function StatsPage({ onReturn }: StatsPageProps) {
-  const { data: sessions, isLoading } = useGetUserChallengeSessions();
+  const { data: sessions, isLoading } = useGetChallengeSessions();
 
   const totalXP = sessions ? sessions.reduce((sum, session) => sum + Number(session.metrics.xpEarned), 0) : 0;
   const totalSessions = sessions ? sessions.length : 0;
@@ -27,112 +27,125 @@ export default function StatsPage({ onReturn }: StatsPageProps) {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading your statistics...</p>
-        </div>
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Loading stats...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Your Statistics</h1>
-          <p className="text-muted-foreground">Track your typing progress and performance</p>
-        </div>
-        <Button onClick={onReturn} variant="outline" className="gap-2">
-          <Home className="h-4 w-4" />
-          Back to Menu
-        </Button>
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-bold">Your Statistics</h2>
+        <p className="text-muted-foreground">Track your typing challenge performance</p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total XP</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardDescription className="flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              Total XP
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{totalXP}</div>
-            <p className="text-xs text-muted-foreground">Lifetime experience points</p>
+            <p className="text-3xl font-bold">{totalXP.toLocaleString()}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sessions Completed</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardDescription className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Sessions Completed
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalSessions}</div>
-            <p className="text-xs text-muted-foreground">Total typing challenges</p>
+            <p className="text-3xl font-bold">{totalSessions}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average XP</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardDescription className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Average XP
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgXP}</div>
-            <p className="text-xs text-muted-foreground">Per session average</p>
+            <p className="text-3xl font-bold">{avgXP.toLocaleString()}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Challenge History */}
       <Card>
         <CardHeader>
           <CardTitle>Challenge History</CardTitle>
-          <CardDescription>Your recent typing challenge sessions</CardDescription>
+          <CardDescription>All your completed typing challenges</CardDescription>
         </CardHeader>
         <CardContent>
           {!sessions || sessions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No challenge sessions yet. Start typing to see your stats!
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No challenges completed yet</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Start your first challenge to see your stats here!
+              </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>XP Earned</TableHead>
-                  <TableHead>Accuracy</TableHead>
-                  <TableHead>WPM</TableHead>
-                  <TableHead>Correct</TableHead>
-                  <TableHead>Mistyped</TableHead>
-                  <TableHead>Untyped</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sessions.map((session: ChallengeSession, index: number) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{formatDate(session.timestamp)}</TableCell>
-                    <TableCell className="text-primary font-semibold">
-                      {Number(session.metrics.xpEarned)}
-                    </TableCell>
-                    <TableCell>{session.metrics.accuracyPercent.toFixed(1)}%</TableCell>
-                    <TableCell>{Number(session.metrics.wpm)}</TableCell>
-                    <TableCell className="text-green-600 dark:text-green-400">
-                      {Number(session.metrics.correctWords)}
-                    </TableCell>
-                    <TableCell className="text-red-600 dark:text-red-400">
-                      {Number(session.metrics.mistypedWords)}
-                    </TableCell>
-                    <TableCell className={Number(session.metrics.untypedWords) === 0 ? 'hidden' : ''}>
-                      {Number(session.metrics.untypedWords)}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead className="text-right">XP</TableHead>
+                    <TableHead className="text-right">Accuracy</TableHead>
+                    <TableHead className="text-right">WPM</TableHead>
+                    <TableHead className="text-right">Correct</TableHead>
+                    <TableHead className="text-right">Mistyped</TableHead>
+                    <TableHead className="text-right">Untyped</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {sessions.map((session: ChallengeSession, index: number) => (
+                    <TableRow key={index}>
+                      <TableCell>{formatDate(session.timestamp)}</TableCell>
+                      <TableCell className="text-right font-bold text-primary">
+                        {Number(session.metrics.xpEarned).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {session.metrics.accuracyPercent.toFixed(1)}%
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.wpm)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.correctWords)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.mistypedWords)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {Number(session.metrics.untypedWords) > 0 ? Number(session.metrics.untypedWords) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      <div className="flex justify-center pb-6">
+        <Button onClick={onReturn} variant="outline" size="lg" className="gap-2">
+          <Home className="w-4 h-4" />
+          Return to Menu
+        </Button>
+      </div>
     </div>
   );
 }

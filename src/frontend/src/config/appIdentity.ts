@@ -1,30 +1,86 @@
-// Configuration module that resolves the backend canister principal from environment variables
-// and derives the account identifier client-side
-
+import { Principal } from '@dfinity/principal';
 import { principalToAccountIdentifier } from '../lib/accountId';
 
-// Try multiple common environment variable keys for the backend canister ID
-const BACKEND_CANISTER_ID = 
-  import.meta.env.VITE_BACKEND_CANISTER_ID ||
-  import.meta.env.VITE_CANISTER_ID_BACKEND ||
-  import.meta.env.CANISTER_ID_BACKEND ||
-  import.meta.env.BACKEND_CANISTER_ID ||
-  '';
+/**
+ * IC-native app identity configuration
+ * Reads the canister ID from deployment-time environment variables
+ * and derives the account identifier client-side
+ */
 
-console.log('🔍 Environment variables check:');
-console.log('  VITE_BACKEND_CANISTER_ID:', import.meta.env.VITE_BACKEND_CANISTER_ID);
-console.log('  VITE_CANISTER_ID_BACKEND:', import.meta.env.VITE_CANISTER_ID_BACKEND);
-console.log('  CANISTER_ID_BACKEND:', import.meta.env.CANISTER_ID_BACKEND);
-console.log('  BACKEND_CANISTER_ID:', import.meta.env.BACKEND_CANISTER_ID);
-console.log('  Resolved BACKEND_CANISTER_ID:', BACKEND_CANISTER_ID);
+/**
+ * Get the app canister principal from Vite environment
+ * Checks multiple common environment variable keys used by dfx/Vite
+ * Returns null if not available or invalid
+ */
+export function getAppCanisterPrincipal(): Principal | null {
+  // List of environment variable keys to check (in priority order)
+  const envKeys = [
+    'VITE_BACKEND_CANISTER_ID',
+    'VITE_CANISTER_ID_BACKEND',
+    'CANISTER_ID_BACKEND',
+    'BACKEND_CANISTER_ID',
+  ];
 
-export const APP_PRINCIPAL = BACKEND_CANISTER_ID;
+  const checkedKeys: string[] = [];
+  const invalidValues: Array<{ key: string; value: string }> = [];
 
-// Derive the account identifier from the principal
-export const APP_ACCOUNT_ID = BACKEND_CANISTER_ID 
-  ? principalToAccountIdentifier(BACKEND_CANISTER_ID)
-  : '';
+  for (const key of envKeys) {
+    const value = import.meta.env[key];
+    checkedKeys.push(key);
 
-console.log('📋 App Identity:');
-console.log('  Principal:', APP_PRINCIPAL);
-console.log('  Account ID:', APP_ACCOUNT_ID);
+    if (value) {
+      try {
+        const principal = Principal.fromText(value);
+        console.log(`✓ Resolved backend canister principal from ${key}:`, principal.toString());
+        return principal;
+      } catch (error) {
+        invalidValues.push({ key, value });
+        console.warn(`✗ Invalid principal value in ${key}:`, value, error);
+      }
+    }
+  }
+
+  // Log a clear warning if no valid principal was found
+  console.warn(
+    '⚠️ Could not resolve backend canister principal ID.',
+    '\nChecked environment keys:', checkedKeys.join(', '),
+    invalidValues.length > 0 ? `\nInvalid values found: ${JSON.stringify(invalidValues)}` : '\nNo values found in any checked keys.'
+  );
+
+  return null;
+}
+
+/**
+ * Get the app canister principal as a string
+ * Returns "Not available" if not found or invalid
+ */
+export function getAppCanisterPrincipalString(): string {
+  const principal = getAppCanisterPrincipal();
+  return principal ? principal.toString() : 'Not available';
+}
+
+/**
+ * Derive the app canister account identifier from its principal
+ * Returns null if principal is not available or derivation fails
+ */
+export async function getAppCanisterAccountId(): Promise<string | null> {
+  try {
+    const principal = getAppCanisterPrincipal();
+    if (!principal) {
+      return null;
+    }
+    return await principalToAccountIdentifier(principal);
+  } catch (error) {
+    console.error('Failed to derive app canister account ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Get the app canister account identifier as a string
+ * Returns "Not available" if derivation fails
+ */
+export async function getAppCanisterAccountIdString(): Promise<string> {
+  const accountId = await getAppCanisterAccountId();
+  return accountId || 'Not available';
+}
