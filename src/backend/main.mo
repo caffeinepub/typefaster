@@ -7,14 +7,8 @@ import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
 import Iter "mo:core/Iter";
 
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-
-// Use Migration.run on upgrade to migrate existing state to new one.
-// This is opt-in and only needs to be specified on legacy systems;
-// new actors are migrated by simply adding the new actor into `main.mo`
-// and removing obsolete bits.
 
 actor {
   type UserProfile = {

@@ -1,68 +1,33 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T01:01:27.054Z",
+  "generatedAt": "2026-02-10T05:11:58.109Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 1,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-6",
-        "summary": "Fix the typed-word counting so that a level reports 0 typed words until the user has entered at least one non-whitespace character that remains (i.e., do not count 1 typed word when the input is empty, and do not count a word if the user typed it and then deleted it before clicking “Next Level”). Update all UI counters/progress and any gating logic that depends on typed-word counts to use this corrected logic.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Adjust the landing page layout so the “Top Players” card and the “Get Started” card each visually match the combined size of two of the smaller feature cards (“5 Levels”, “Earn XP”, “Win ICP”) when viewed on typical desktop breakpoints, creating a more professional, balanced layout.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Polish the test results (post-challenge completion) layout so the WPM display fits on a single line when it reads “not available (test duration < 60 secs)”, and adjust the surrounding stat boxes to maintain a professional, consistent appearance.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/TypingChallenge.tsx"
-        ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Remove the “Donate here” section from the app’s footer area/landing view for now (remove the UI block showing “Donate here:” and the donation account id).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
-        ]
+        "id": "REQ-4",
+        "summary": "Deploy the current draft backend again as a brand-new canister (new canister ID), without changing the backend code/behavior, and without making any frontend changes.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/LoginPage.tsx",
-    "frontend/src/pages/TypingChallenge.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
