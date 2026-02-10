@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Redeploy the current draft backend as a brand-new canister (new canister ID) without changing backend behavior and without any frontend changes.
+**Goal:** Fix backend challenge-session persistence so XP is computed with the correct per-word values and untyped word counts are retained for early finishes/skipped levels.
 
 **Planned changes:**
-- Deploy the existing draft backend to a newly created backend canister (resulting in a different canister principal/ID than the prior draft backend).
-- Record the newly deployed backend canister principal/ID as an explicit deployment output for verification/debugging.
+- Normalize/stamp `ChallengeSession.metrics.xpEarned` at save time using `(correctWords * 5) - (mistypedWords * 10)`, ignoring any client-provided `xpEarned` that would yield incorrect totals.
+- Persist `metrics.untypedWords` exactly as received in `saveChallengeSession`, and ensure it is returned unchanged in `getUserChallengeSessions` responses.
 
-**User-visible outcome:** The backend is available under a new canister ID, with the same behavior as before, and the new canister principal/ID is available for reference.
+**User-visible outcome:** Newly saved sessions show corrected XP totals in stats/leaderboards, and untyped word counts remain accurate even when users finish early or skip levels—without any frontend changes.

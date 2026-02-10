@@ -1,10 +1,10 @@
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-import Array "mo:core/Array";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
+import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -19,12 +19,12 @@ actor {
   };
 
   type ChallengeMetrics = {
-    xpEarned : Int;
-    accuracyPercent : Float;
-    wpm : Int;
     correctWords : Int;
     mistypedWords : Int;
     untypedWords : Int;
+    accuracyPercent : Float;
+    wpm : Int;
+    xpEarned : Int;
   };
 
   type ChallengeSession = {
@@ -178,10 +178,15 @@ actor {
       Runtime.trap("Unauthorized: Only users can save challenge sessions");
     };
 
+    let normalizedMetrics : ChallengeMetrics = {
+      metrics with
+      xpEarned = (metrics.correctWords * 5) - (metrics.mistypedWords * 10);
+    };
+
     let session : ChallengeSession = {
       user = caller;
       timestamp = Time.now();
-      metrics;
+      metrics = normalizedMetrics;
     };
 
     switch (challengeSessions.get(caller)) {

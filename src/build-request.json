@@ -1,36 +1,59 @@
 {
   "kind": "build_request",
-  "title": "Redeploy draft backend as a new canister (no non-backend changes)",
+  "title": "Backend-only fixes: correct XP awards and ensure skipped/early-finish untyped words are persisted",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-4",
-      "text": "Deploy the current draft backend again as a brand-new canister (new canister ID), without changing the backend code/behavior, and without making any frontend changes.",
+      "id": "REQ-5",
+      "text": "Update backend challenge-session persistence so XP uses the correct scoring values: +5 XP per correct word and -10 XP per mistyped word (not +10 / -20). The backend must not trust any client-provided xpEarned value that would cause incorrect XP totals; it must normalize/stamp xpEarned at save time based on the submitted correctWords and mistypedWords fields.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-recent-1",
+          "msg-recent-2"
         ],
         "quotes": [
-          "Deploy the draft backend again as a new canister, make sure to not change anything else that is not related to the backend"
+          "fix earned xp, testing has shown that a correct word gives 10 XP instead of 5 XP and a mistyped word subtracts 20 XP instead of 10 XP as it should",
+          "Proceed to building but remember don't make any changes to the frontend or other backend changes other than what I requested"
         ]
       },
       "acceptanceCriteria": [
-        "A new backend canister is created and deployed for the current draft version (i.e., the canister ID differs from the previous draft backend canister ID).",
-        "No functional code changes are made to backend/main.mo aside from any deployment-generated artifacts; no schema/state migration work is introduced.",
-        "No frontend files are modified as part of this change.",
-        "The new backend canister principal/ID is recorded as an output of the deployment so it can be referenced for verification/debugging."
+        "When saveChallengeSession is called, the stored ChallengeSession.metrics.xpEarned equals (correctWords * 5) - (mistypedWords * 10) (plus/minus no other per-word multipliers).",
+        "Leaderboard and Stats derived from stored sessions reflect the corrected xpEarned values for newly saved sessions.",
+        "No frontend code changes are made to accomplish the XP fix."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Ensure challenge-session persistence correctly retains untypedWords values even when the user ends a challenge early or skips levels (e.g., via \"Finish early\" or \"Skip Level\"); untypedWords provided in ChallengeMetrics must be stored exactly as received and included in subsequent getUserChallengeSessions responses.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent-1",
+          "msg-recent-2"
+        ],
+        "quotes": [
+          "make sure that untyped words are still counted from skipped levels when user clicks \"Finish early\" or \"Skip Level\"",
+          "Proceed to building but remember don't make any changes to the frontend or other backend changes other than what I requested"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Calling saveChallengeSession with a non-zero untypedWords results in getUserChallengeSessions returning sessions where metrics.untypedWords matches the saved value.",
+        "The backend does not reset, drop, or overwrite untypedWords during session save.",
+        "No frontend code changes are made to accomplish this persistence behavior."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any frontend code or configuration.",
-    "Do not change backend logic or add new features; only redeploy the existing draft backend to a new canister.",
-    "Respect single-actor Motoko backend architecture (all logic remains in backend/main.mo)."
+    "Do not make any frontend changes.",
+    "Do not make any backend changes beyond the XP normalization fix and ensuring untypedWords is persisted/returned as-is.",
+    "Keep all Motoko logic in the existing single actor (backend/main.mo).",
+    "Do not introduce additional backend services or external databases."
   ],
   "nonGoals": [
-    "Investigating or fixing the underlying cause of the backend connection/origin error beyond performing the redeploy.",
-    "Promoting the draft backend to a live environment."
+    "Changing the typing challenge UI/UX or client-side calculations.",
+    "Adding new metrics fields or changing the ChallengeMetrics type shape (to avoid requiring frontend changes).",
+    "Redeploying to a brand-new canister ID (not requested in the active user instruction)."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,13 +1,16 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "New project",
+  "projectStateVersion": 5,
+  "summary": "Backend-only fixes requested on the existing deployed baseline: correct earned XP values and ensure untyped words from skipped levels are counted when finishing early or skipping a level. No frontend changes and no other backend changes beyond these fixes.",
   "architectural_notes": [
-    "Backend deployments should support redeploying the draft backend as a new canister without changing unrelated (non-backend) components."
+    "Backend deployments should support redeploying the draft backend as a new canister without changing unrelated (non-backend) components.",
+    "Apply backend-only changes limited strictly to the requested XP and skipped-word counting fixes; do not modify frontend."
   ],
   "known_issues": [
     "Backend connection problem observed in the draft version (also previously reported in live).",
-    "Attempted draft backend redeploy failed due to a deployment/snack error ('We hit a snag with our language model')."
+    "Attempted draft backend redeploy failed due to a deployment/snack error ('We hit a snag with our language model').",
+    "XP awarding/deduction values are incorrect (correct word gives 10 instead of 5; mistyped subtracts 20 instead of 10).",
+    "Untyped words from skipped levels may not be counted when using \"Finish early\" or \"Skip Level\"."
   ],
   "isFixRequest": true,
   "existing_features": [],
@@ -17,6 +20,34 @@
       "summary": "Deploy the current draft backend again as a brand-new canister (new canister ID), without changing the backend code/behavior, and without making any frontend changes.",
       "reqIds": [
         "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Fix earned XP logic: correct word should give 5 XP (not 10) and mistyped word should subtract 10 XP (not 20).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure untyped words from skipped levels are still counted when the user clicks \"Finish early\" or \"Skip Level\".",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Update backend challenge-session persistence so XP uses the correct scoring values: +5 XP per correct word and -10 XP per mistyped word (not +10 / -20). The backend must not trust any client-provided xpEarned value that would cause incorrect XP totals; it must normalize/stamp xpEarned at save time based on the submitted correctWords and mistypedWords fields.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Ensure challenge-session persistence correctly retains untypedWords values even when the user ends a challenge early or skips levels (e.g., via \"Finish early\" or \"Skip Level\"); untypedWords provided in ChallengeMetrics must be stored exactly as received and included in subsequent getUserChallengeSessions responses.",
+      "reqIds": [
+        "REQ-6"
       ],
       "status": "pending"
     }

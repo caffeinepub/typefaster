@@ -1,40 +1,30 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T05:11:58.108Z",
-  "summary": "The diff does not show any deployment artifacts, canister ID recording, or other evidence of redeploying the draft backend as a brand-new canister. It also includes a modification to backend/main.mo, which conflicts with the constraint/AC of making no functional backend changes (unless the change is strictly deployment-generated, which cannot be verified from the diff). No frontend changes are present in the provided diff.",
+  "generatedAt": "2026-02-10T23:37:51.871Z",
+  "summary": "The diff does not show any backend logic changes implementing XP normalization at save time or ensuring untypedWords is persisted/returned as-is. Only a truncated view of backend/main.mo (showing types and query methods) and an update to project_state.json are provided.",
   "missing_requirements": [
     {
-      "id": "REQ-4",
-      "requirement": "Create and deploy the current draft backend as a brand-new canister (new canister ID differing from the previous draft backend canister ID).",
-      "reason": "The diff only contains source/control files and does not include any deployment configuration/output or artifacts indicating a new canister was created/deployed or that the canister ID changed.",
+      "id": "REQ-5",
+      "requirement": "Normalize/stamp ChallengeSession.metrics.xpEarned at save time to (correctWords * 5) - (mistypedWords * 10), not trusting any client-provided xpEarned, so leaderboard/stats reflect corrected values for newly saved sessions.",
+      "reason": "The diff summary does not include any changes to saveChallengeSession (or any session persistence logic) that recompute xpEarned from correctWords/mistypedWords using the required 5/-10 scoring. The shown backend/main.mo snippet only includes type definitions and query methods like getLeaderboard/getUserChallengeSessions.",
       "evidence": [
-        "backend/main.mo",
-        "project_state.json"
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-4",
-      "requirement": "Record the new backend canister principal/ID as an output of the deployment for verification/debugging.",
-      "reason": "No file in the diff captures or records a newly deployed canister principal/ID (e.g., in a deployment output file, README, or config).",
+      "id": "REQ-6",
+      "requirement": "Persist ChallengeMetrics.untypedWords exactly as received (including early finish/skip scenarios) and return it unchanged via getUserChallengeSessions.",
+      "reason": "No changes are shown to challenge-session save/persistence logic to ensure untypedWords is stored exactly as received. While getUserChallengeSessions returns stored sessions, the diff provides no evidence that save-time logic no longer resets/drops/overwrites untypedWords.",
       "evidence": [
-        "project_state.json",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "No functional code changes are made to backend/main.mo aside from any deployment-generated artifacts.",
-      "reason": "backend/main.mo is modified in the diff; from the summary alone it cannot be verified that changes are strictly deployment-generated artifacts rather than functional changes.",
-      "evidence": [
-        "backend/main.mo"
+        "backend/main.mo (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/updated a project tracking file (project_state.json) with feature request metadata and known issues.",
-      "reason": "The BuildRequest only asks to redeploy the existing draft backend as a new canister without changing code/behavior or making non-backend changes; adding/updating project management metadata is not part of the requested deployment outcome.",
+      "description": "Added/updated project tracking metadata in project_state.json (new_feature_requests, architectural_notes, known_issues) unrelated to the backend XP/untypedWords persistence fixes.",
+      "reason": "The BuildRequest constraints focus on backend-only logic changes in backend/main.mo limited to XP normalization and untypedWords persistence; project_state.json changes are not requested as part of the functional requirements.",
       "evidence": [
         "project_state.json"
       ]

@@ -1,18 +1,25 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T05:11:58.109Z",
+  "generatedAt": "2026-02-10T23:37:51.873Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
+    "total": 2,
     "implemented": 0,
     "items": [
       {
-        "id": "REQ-4",
-        "summary": "Deploy the current draft backend again as a brand-new canister (new canister ID), without changing the backend code/behavior, and without making any frontend changes.",
+        "id": "REQ-5",
+        "summary": "Update backend challenge-session persistence so XP uses the correct scoring values: +5 XP per correct word and -10 XP per mistyped word (not +10 / -20). The backend must not trust any client-provided xpEarned value that would cause incorrect XP totals; it must normalize/stamp xpEarned at save time based on the submitted correctWords and mistypedWords fields.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Ensure challenge-session persistence correctly retains untypedWords values even when the user ends a challenge early or skips levels (e.g., via \"Finish early\" or \"Skip Level\"); untypedWords provided in ChallengeMetrics must be stored exactly as received and included in subsequent getUserChallengeSessions responses.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []

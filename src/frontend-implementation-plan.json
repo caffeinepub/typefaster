@@ -1,6 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Redeploy draft backend as new canister (frontend unchanged)",
+  "title": "Frontend plan: no changes required (backend-only fixes)",
   "requirements": []
 }
